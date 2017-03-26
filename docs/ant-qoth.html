@@ -1,0 +1,65 @@
+<head>
+  <link rel='stylesheet' type='text/css' href='ant-qoth.css'>
+</head>
+<body>
+  <h1>Formic Functions - Ant Queen of the Hill Contest</h1>
+  
+  <div>
+    <button id='run_single_game'><h2>Run single game</h2></button>
+    <button id='run_full_tournament'><h2>Run full tournament</h2></button>
+  </div>
+  
+  <div>
+    <div id='controls_area'>
+      <button>Play</button>
+      <button>Pause</button>
+      <button>Step</button>
+    </div>
+    <div id='delay_area'>Delay <input id='delay' type='number' value='100' min='0' max='999'>ms</div>
+    <div id='display_moves_area'>Display<input id='display_moves' type='checkbox' checked='checked'></div>
+    <div id='max_area'>Max <input id='max_players' type='number' value='16' min='0' max='99'></input> players per game</div>
+    <div id='fit_area'><button id='fit_canvas'>Fit canvas to width</button></div>
+  </div>
+  
+  <canvas></canvas>
+   
+  <table>
+    <caption>Current Game</caption>
+    <thead>
+      <tr>
+        <th rowspan='2'>Player</th>
+        <th colspan='4'>Workers</th>
+        <th rowspan='2'>Food</th>
+      </tr>
+      <tr>
+        <th>Type 1</th>
+        <th>Type 2</th>
+        <th>Type 3</th>
+        <th>Type 4</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  
+  <table>
+    <caption>Tournament Leaderboard. <i>Players refreshed from contest post at</i></caption>
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Player</th>
+        <th>Score</th>
+        <th>Confidence of position (0-1)</th>
+        <th>Include</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  
+  Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
+  
+  <h3>New challenger</h3>
+  <textarea maxlength='30000' placeholder='(Optional - enter function to be tested here)' rows='30' spellcheck='false'></textarea>
+
+</body>

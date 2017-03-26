@@ -1,0 +1,45 @@
+body {
+  margin: auto;
+  text-align: center;
+}
+textarea {
+  width: 1250px;
+}
+#delay, #permitted_time_override {
+  width: 5em;
+}
+#max_players {
+  width: 4em;
+}
+canvas {
+  border: 0.1em solid black; 
+  width: 1250;
+  height: 500;
+}
+#controls_area, #display_moves_area, #delay_area, #max_area, #fit_area {
+  display: inline-block;
+  padding-left: 2em;
+  padding-right: 2em;
+}
+#run_single_game, #run_full_tournament {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+textarea {
+  margin: auto;
+  background-color: #102;
+  color: #00ff00;
+}
+table {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  border:0.1em solid black;
+}
+th, td {
+  border:0.1em solid black;
+}
+h1, h3 {
+  margin: 0.5em;
+}
