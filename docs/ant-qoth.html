@@ -1,8 +1,10 @@
 <head>
+	<meta charset="UTF-8">
   <link rel='stylesheet' type='text/css' href='ant-qoth.css'>
+  <script src='jquery.js'></script>
   <script src='ant-qoth.js'></script>
 </head>
-<body onload='page_setup()'>
+<body>
   <h1>Formic Functions - Ant Queen of the Hill Contest</h1>
   
   <div>
@@ -43,18 +45,22 @@
     </tbody>
   </table>
   
+  <div id='game_counter'>0 games played.</div>
+  
+  <div id='loaded_at'><i>Players not yet loaded from contest post.</i></div>
+  
   <table>
-    <caption>Tournament Leaderboard. <i>Players refreshed from contest post at</i></caption>
+    <caption>Tournament Leaderboard</caption>
     <thead>
       <tr>
         <th>Position</th>
         <th>Player</th>
         <th>Score</th>
         <th>Confidence of position (0-1)</th>
-        <th>Include</th>
+        <th>Included</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id='leaderboard_body'>
     </tbody>
   </table>
   
