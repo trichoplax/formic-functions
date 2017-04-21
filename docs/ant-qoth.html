@@ -9,14 +9,14 @@
   
   <div>
     <button id='run_single_game'><h2>Run single game</h2></button>
-    <button id='run_full_tournament'><h2>Run full tournament</h2></button>
+    <button id='run_ongoing_tournament'><h2>Run ongoing tournament</h2></button>
   </div>
   
   <div>
     <div id='controls_area'>
-      <button>Play</button>
-      <button>Pause</button>
-      <button>Step</button>
+      <button id='play'>Play</button>
+      <button id='pause'>Pause</button>
+      <button id='step'>Step (S)</button>
     </div>
     <div id='delay_area'>Delay <input id='delay' type='number' value='100' min='0' max='999'>ms</div>
     <div id='display_moves_area'>Display<input id='display_moves' type='checkbox' checked='checked'></div>
@@ -24,8 +24,10 @@
     <div id='fit_area'><button id='fit_canvas'>Fit canvas to width</button></div>
   </div>
   
-  <canvas></canvas>
-   
+  <canvas id='arena_canvas'></canvas>
+
+	<div>Completed move 0 of 10000</div>
+	
   <table>
     <caption>Current Game</caption>
     <thead>
@@ -67,6 +69,6 @@
   Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
   
   <h3>New challenger</h3>
-  <textarea maxlength='30000' placeholder='(Optional - enter function to be tested here)' rows='30' spellcheck='false'></textarea>
+  <textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - enter function to be tested here)' rows='30' spellcheck='false'></textarea>
 
 </body>

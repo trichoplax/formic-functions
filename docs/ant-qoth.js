@@ -15,7 +15,7 @@ function setGlobals() {
 	qid = 50690
 	site = 'codegolf'
 	players = []
-	leaderboard_info = []
+	leaderboardInfo = []
 }
 
 /* HELPERS */
@@ -31,15 +31,15 @@ function showLoadedTime() {
 function initialiseLeaderboard() {
 	players.forEach(function(player) {
 		var row = { id: player['id'], position: 1, name: player['title'], score: 0, confidence: 0, included: player['included'] }
-		leaderboard_info.push(row)
+		leaderboardInfo.push(row)
 	})
-	display_leaderboard()
+	displayLeaderboard()
 }
 
-function display_leaderboard() {
+function displayLeaderboard() {
 	var	content = ''
-	leaderboard_info.forEach(function(row) {
-		var checkbox_id = row['id'] + '_included'
+	leaderboardInfo.forEach(function(row) {
+		var checkboxId = 'included_' + row['id']
 		content += '<tr>'
 		content += '<td>'
 		content += row['position']
@@ -54,16 +54,38 @@ function display_leaderboard() {
 		content += row['confidence']
 		content += '</td>'
 		content += '<td>'
-		content += '<input id=' + checkbox_id + ' type=checkbox>'
+		content += '<input id=' + checkboxId + ' type=checkbox>'
 		content += '</td>'
 		content += '</tr>'
 	})
 	$('#leaderboard_body').html(content)
-	leaderboard_info.forEach(function(row) {
-		var checkbox_id = '#' + row['id'] + '_included'	
-		$(checkbox_id).prop('checked', row['included'])
+	leaderboardInfo.forEach(function(row) {
+		var id = row['id']
+		var checkboxId = '#included_' + id
+		$(checkboxId).prop('checked', row['included'])
+		var player = players[players.findIndex(function(player){
+			return player['id'] === id
+		})]
+		$(checkboxId).change(function() {
+			player['included'] = $(checkboxId).prop('checked')
+		})
 	})	
 }
+
+$('#run_single_game').click(function() {})
+$('#run_ongoing_tournament').click(function() {})
+$('#play').click(function() {})
+$('#pause').click(function() {})
+$('#step').click(function() {})
+$('#delay').change(function() {})
+$('#display_moves').change(function() {})
+$('#max_players').change(function() {})
+$('#fit_canvas').click(function() {})
+$('#arena_canvas').mousemove(function() {})
+$('#arena_canvas').mouseleave(function() {})
+$('#permitted_time_override').change(function() {})
+$('#new_challenger_text').change(function() {})
+
 
 /* GAMEPLAY */
 
@@ -103,7 +125,7 @@ function createPlayers(answers) {
     var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
     var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 	
-	var testPlayer = { id: -1, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER [-1]' }
+	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER [0]' }
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
