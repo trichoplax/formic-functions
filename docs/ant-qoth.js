@@ -74,15 +74,16 @@ function displayLeaderboard() {
 
 $('#run_single_game').click(function() {})
 $('#run_ongoing_tournament').click(function() {})
+$('#no_display').click(function() {})
+$('#delay').change(function() {})
 $('#play').click(function() {})
 $('#pause').click(function() {})
 $('#step').click(function() {})
-$('#delay').change(function() {})
-$('#display_moves').change(function() {})
 $('#max_players').change(function() {})
 $('#fit_canvas').click(function() {})
-$('#arena_canvas').mousemove(function() {})
-$('#arena_canvas').mouseleave(function() {})
+$('#arena_canvas').mousemove(function() {})		// Relocate zoomed region unless frozen
+$('#arena_canvas').mouseleave(function() {})	// Remove zoomed region unless frozen
+$('#arena_canvas').click(function() {})		// Toggle freezing of location of zoomed region
 $('#permitted_time_override').change(function() {})
 $('#new_challenger_text').change(function() {})
 
