@@ -9,6 +9,7 @@ $(load)
 function load() {
 	setGlobals()
 	loadPlayers()
+	initialiseInterface()
 }
 
 function setGlobals() {
@@ -16,6 +17,39 @@ function setGlobals() {
 	site = 'codegolf'
 	players = []
 	leaderboardInfo = []
+	population = []
+	currentAnt = 0
+	continuousMoves = false
+	ongoingTournament = false
+	currentGameInfo = []
+}
+
+function initialiseInterface() {
+	$('#restore_display').hide()
+	$('#run_single_game').click(function() {})
+	$('#run_ongoing_tournament').click(function() {})
+	$('#no_display').click(function() {
+		$('#top_hidden_area').hide(300)
+		$('#bottom_hidden_area').hide(300)
+		$('#restore_display').show(300)
+	})
+	$('#delay').change(function() {})
+	$('#play').click(function() {})
+	$('#pause').click(function() {})
+	$('#step').click(function() {})
+	$('#max_players').change(function() {})
+	$('#fit_canvas').click(function() {})
+	$('#arena_canvas').mousemove(function() {})		// Relocate zoomed region unless frozen
+	$('#arena_canvas').mouseleave(function() {})	// Remove zoomed region unless frozen
+	$('#arena_canvas').click(function() {})		// Toggle freezing of location of zoomed region
+	$('#restore_display').click(function() {
+		$('#restore_display').hide(300)
+		$('#top_hidden_area').show(300)
+		$('#bottom_hidden_area').show(300)
+	})
+	$('#permitted_time_override').change(function() {})
+	$('#new_challenger_text').change(function() {})
+
 }
 
 /* HELPERS */
@@ -72,25 +106,10 @@ function displayLeaderboard() {
 	})	
 }
 
-$('#run_single_game').click(function() {})
-$('#run_ongoing_tournament').click(function() {})
-$('#no_display').click(function() {})
-$('#delay').change(function() {})
-$('#play').click(function() {})
-$('#pause').click(function() {})
-$('#step').click(function() {})
-$('#max_players').change(function() {})
-$('#fit_canvas').click(function() {})
-$('#arena_canvas').mousemove(function() {})		// Relocate zoomed region unless frozen
-$('#arena_canvas').mouseleave(function() {})	// Remove zoomed region unless frozen
-$('#arena_canvas').click(function() {})		// Toggle freezing of location of zoomed region
-$('#permitted_time_override').change(function() {})
-$('#new_challenger_text').change(function() {})
-
 
 /* GAMEPLAY */
 
-function runTournament() {}
+
 
 /* PLAYER LOADING */
 
