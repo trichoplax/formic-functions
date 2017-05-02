@@ -18,6 +18,8 @@ function setGlobals() {
 	players = []
 	leaderboardInfo = []
 	population = []
+	delay = 150
+	$('#delay').val(delay)
 	currentAnt = 0
 	continuousMoves = false
 	ongoingTournament = false
@@ -36,12 +38,13 @@ function initialiseInterface() {
 	$('#delay').change(function() {})
 	$('#play').click(function() {})
 	$('#pause').click(function() {})
-	$('#step').click(function() {})
+	$('#step').click(function() {})			// Step all ants in the population
+	$('#step_ant').click(function() {})		// Step next visible ant, or next ant if no zoom
 	$('#max_players').change(function() {})
 	$('#fit_canvas').click(function() {})
 	$('#arena_canvas').mousemove(function() {})		// Relocate zoomed region unless frozen
 	$('#arena_canvas').mouseleave(function() {})	// Remove zoomed region unless frozen
-	$('#arena_canvas').click(function() {})		// Toggle freezing of location of zoomed region
+	$('#arena_canvas').click(function() {})			// Toggle freezing of location of zoomed region
 	$('#restore_display').click(function() {
 		$('#restore_display').hide(300)
 		$('#top_hidden_area').show(300)
@@ -109,7 +112,18 @@ function displayLeaderboard() {
 
 /* GAMEPLAY */
 
-
+function moveNextAnt() {
+	
+	
+	currentAnt = (currentAnt + 1) % population.length
+	if (continuousMoves) {
+		if (currentAnt === 0) {
+			setTimeout(moveNextAnt, delay)
+		} else {
+			setTimeout(moveNextAnt, 0)
+		}
+	}
+}
 
 /* PLAYER LOADING */
 
@@ -145,7 +159,7 @@ function createPlayers(answers) {
     var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
     var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 	
-	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER [0]' }
+	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER' }
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -158,7 +172,7 @@ function createPlayers(answers) {
 			player.included = true
 			player.code = decode(codeMatch[1])
 			player.link = answer.link
-			player.title = nameMatch[1].substring(0,20) + ' - ' + user + ' [' + player.id.toString() + ']'
+			player.title = nameMatch[1].substring(0,20) + ' - ' + user
 			players.push(player)
 		}		
 	})
