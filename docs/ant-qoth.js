@@ -19,32 +19,43 @@ function setGlobals() {
 	leaderboardInfo = []
 	population = []
 	delay = 150
-	$('#delay').val(delay)
 	currentAnt = 0
+	maxPlayers = 16
 	continuousMoves = false
 	ongoingTournament = false
 	currentGameInfo = []
 }
 
 function initialiseInterface() {
-	$('#restore_display').hide()
 	$('#run_single_game').click(function() {})
 	$('#run_ongoing_tournament').click(function() {})
+	$('#no_display').prop('disabled', true)
 	$('#no_display').click(function() {
 		$('#top_hidden_area').hide(300)
 		$('#bottom_hidden_area').hide(300)
 		$('#restore_display').show(300)
 	})
-	$('#delay').change(function() {})
+	$('#delay').val(delay)
+	$('#delay').change(function() {
+		delay = $('#delay').val()
+	})
+	$('#play').prop('disabled', true)
 	$('#play').click(function() {})
+	$('#pause').prop('disabled', true)
 	$('#pause').click(function() {})
+	$('#step').prop('disabled', true)
 	$('#step').click(function() {})			// Step all ants in the population
+	$('#step_ant').prop('disabled', true)
 	$('#step_ant').click(function() {})		// Step next visible ant, or next ant if no zoom
-	$('#max_players').change(function() {})
+	$('#max_players').val(maxPlayers)
+	$('#max_players').change(function() {
+		maxPlayers = $('#max_players').val()
+	})
 	$('#fit_canvas').click(function() {})
 	$('#arena_canvas').mousemove(function() {})		// Relocate zoomed region unless frozen
 	$('#arena_canvas').mouseleave(function() {})	// Remove zoomed region unless frozen
 	$('#arena_canvas').click(function() {})			// Toggle freezing of location of zoomed region
+	$('#restore_display').hide()
 	$('#restore_display').click(function() {
 		$('#restore_display').hide(300)
 		$('#top_hidden_area').show(300)
