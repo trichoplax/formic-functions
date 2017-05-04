@@ -36,7 +36,7 @@ h1, h3 {
 #max_players {
   width: 4em;
 }
-#controls_area, #no_display_area, #delay_area, #max_area, #fit_area, #abandon_game_area, #abandon_tournament_area, #completed_moves_area {
+#controls_area, #no_display_area, #delay_area, #max_area, #fit_area, #abandon_game_area, #reset_leaderboard_area, #completed_moves_area {
   display: inline-block;
   padding-left: 1.5em;
   padding-right: 1.5em;
@@ -44,7 +44,7 @@ h1, h3 {
 #run_single_game, #run_full_tournament {
   margin-bottom: 1em;
 }
-#no_display, #play, #pause, #step, #step_ant, #fit_canvas, #abandon_game, #abandon_tournament {
+#no_display, #play, #pause, #step, #step_ant, #fit_canvas, #abandon_game, #reset_leaderboard {
   padding-left: 0em;
   padding-right: 0em;
 }

@@ -35,6 +35,7 @@ function decode(html) { return $('<textarea>').html(html).text() }
 
 function initialiseInterface() {
 	$('#run_single_game').click(function() {
+		ongoingTournament = false
 		$('#run_single_game').html('<h2>Running single game</h2>')
 		$('#run_single_game').prop('disabled', true)
 		$('#run_ongoing_tournament').html('<h2>Run ongoing tournament</h2>')
@@ -49,6 +50,7 @@ function initialiseInterface() {
 		
 	})
 	$('#run_ongoing_tournament').click(function() {
+		ongoingTournament = true
 		$('#run_single_game').html('<h2>Run single game</h2>')
 		$('#run_single_game').prop('disabled', false)
 		$('#run_ongoing_tournament').html('<h2>Running ongoing tournament</h2>')
@@ -98,7 +100,27 @@ function initialiseInterface() {
 		$('#abandon_tournament').show(300)
 	})
 	$('#abandon_game').prop('disabled', true)
-	$('#abandon_tournament').prop('disabled', true)
+	$('#abandon_game').click(function() {
+		if (ongoingTournament) {
+			startNewGame()
+		} else {
+			$('#completed_moves_area').html('0 moves of 10000 completed')
+			$('#current_game_body').html('')
+			$('#run_single_game').prop('disabled', false)
+			$('#no_display').prop('disabled', true)
+			$('#play').prop('disabled', true)
+			$('#pause').prop('disabled', true)
+			$('#step').prop('disabled', true)
+			$('#step_ant').prop('disabled', true)
+			$('#abandon_game').prop('disabled',true)
+		}		
+	})
+	$('#reset_leaderboard').prop('disabled', true)
+	$('#reset_leaderboard').click(function() {
+		$('#reset_leaderboard').prop('disabled', true)
+		leaderboardInfo = []
+		initialiseLeaderboard()
+	})
 	$('#permitted_time_override').change(function() {})
 	$('#new_challenger_text').change(function() {})
 
@@ -154,6 +176,8 @@ function displayLeaderboard() {
 
 
 /* GAMEPLAY */
+
+function startNewGame() {}
 
 function moveNextAnt() {
 	
