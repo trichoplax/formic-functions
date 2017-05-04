@@ -21,18 +21,52 @@ function setGlobals() {
 	delay = 150
 	currentAnt = 0
 	maxPlayers = 16
-	continuousMoves = false
+	continuousMoves = true
 	ongoingTournament = false
 	currentGameInfo = []
+	arena = []
 }
 
+/* HELPERS */
+
+function decode(html) { return $('<textarea>').html(html).text() }
+
+/* INTERFACE */
+
 function initialiseInterface() {
-	$('#run_single_game').click(function() {})
-	$('#run_ongoing_tournament').click(function() {})
+	$('#run_single_game').click(function() {
+		$('#run_single_game').html('<h2>Running single game</h2>')
+		$('#run_single_game').prop('disabled', true)
+		$('#run_ongoing_tournament').html('<h2>Run ongoing tournament</h2>')
+		$('#run_ongoing_tournament').prop('disabled', false)
+		$('#no_display').prop('disabled', false)
+		$('#play').prop('disabled', false)
+		$('#pause').prop('disabled', false)
+		$('#step').prop('disabled', false)
+		$('#step_ant').prop('disabled', false)
+		$('#abandon_game').prop('disabled', false)
+		$('#abandon_tournament').prop('disabled', false)
+		
+	})
+	$('#run_ongoing_tournament').click(function() {
+		$('#run_single_game').html('<h2>Run single game</h2>')
+		$('#run_single_game').prop('disabled', false)
+		$('#run_ongoing_tournament').html('<h2>Running ongoing tournament</h2>')
+		$('#run_ongoing_tournament').prop('disabled', true)
+		$('#no_display').prop('disabled', false)
+		$('#play').prop('disabled', false)
+		$('#pause').prop('disabled', false)
+		$('#step').prop('disabled', false)
+		$('#step_ant').prop('disabled', false)
+		$('#abandon_game').prop('disabled', false)
+		$('#abandon_tournament').prop('disabled', false)
+	})
 	$('#no_display').prop('disabled', true)
 	$('#no_display').click(function() {
 		$('#top_hidden_area').hide(300)
 		$('#bottom_hidden_area').hide(300)
+		$('#abandon_game').hide(300)
+		$('#abandon_tournament').hide(300)
 		$('#restore_display').show(300)
 	})
 	$('#delay').val(delay)
@@ -60,17 +94,15 @@ function initialiseInterface() {
 		$('#restore_display').hide(300)
 		$('#top_hidden_area').show(300)
 		$('#bottom_hidden_area').show(300)
+		$('#abandon_game').show(300)
+		$('#abandon_tournament').show(300)
 	})
+	$('#abandon_game').prop('disabled', true)
+	$('#abandon_tournament').prop('disabled', true)
 	$('#permitted_time_override').change(function() {})
 	$('#new_challenger_text').change(function() {})
 
 }
-
-/* HELPERS */
-
-function decode(html) { return $('<textarea>').html(html).text() }
-
-/* INTERFACE */
 
 function showLoadedTime() {
 	$('#loaded_at').html('<i>Players loaded from contest post</i> ' + (new Date()).toString())
