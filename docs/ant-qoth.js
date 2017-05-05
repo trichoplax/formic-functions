@@ -21,10 +21,15 @@ function setGlobals() {
 	delay = 150
 	currentAnt = 0
 	maxPlayers = 16
+	display = true
+	zoomed = false
 	continuousMoves = true
+	singleAntStep = false
+	gameInProgress = false
 	ongoingTournament = false
 	currentGameInfo = []
 	arena = []
+	timeoutID = 0
 }
 
 /* HELPERS */
@@ -34,6 +39,17 @@ function decode(html) { return $('<textarea>').html(html).text() }
 /* INTERFACE */
 
 function initialiseInterface() {
+	$('document').keypress(function(event) {
+		if ((String.fromCharCode(event.which)).toUpperCase() == 'S') {
+			if (display) {
+				step()
+			}
+		} else if ((String.fromCharCode(event.which)).toUpperCase() == 'A') {
+			if (display) {
+				stepAnt()
+			}
+		}
+	})
 	$('#run_single_game').click(function() {
 		ongoingTournament = false
 		$('#run_single_game').html('<h2>Running single game</h2>')
@@ -46,8 +62,10 @@ function initialiseInterface() {
 		$('#step').prop('disabled', false)
 		$('#step_ant').prop('disabled', false)
 		$('#abandon_game').prop('disabled', false)
-		$('#abandon_tournament').prop('disabled', false)
-		
+		$('#reset_leaderboard').prop('disabled', false)
+		if (!gameInProgress) {
+			startNewGame()
+		}		
 	})
 	$('#run_ongoing_tournament').click(function() {
 		ongoingTournament = true
@@ -61,28 +79,48 @@ function initialiseInterface() {
 		$('#step').prop('disabled', false)
 		$('#step_ant').prop('disabled', false)
 		$('#abandon_game').prop('disabled', false)
-		$('#abandon_tournament').prop('disabled', false)
+		$('#reset_leaderboard').prop('disabled', false)
+		if (!gameInProgress) {
+			startNewGame()
+		}
 	})
 	$('#no_display').prop('disabled', true)
 	$('#no_display').click(function() {
 		$('#top_hidden_area').hide(300)
 		$('#bottom_hidden_area').hide(300)
 		$('#abandon_game').hide(300)
-		$('#abandon_tournament').hide(300)
+		$('#reset_leaderboard').hide(300)
 		$('#restore_display').show(300)
+		display = false
+		continuousMoves = true
 	})
 	$('#delay').val(delay)
 	$('#delay').change(function() {
 		delay = $('#delay').val()
 	})
 	$('#play').prop('disabled', true)
-	$('#play').click(function() {})
+	$('#play').click(function() {
+		continuousMoves = true
+		$('#play').prop('disabled', true)
+		$('#pause').prop('disabled', false)
+		clearTimeout(timeoutID)
+		moveNextAnt()			
+	})
 	$('#pause').prop('disabled', true)
-	$('#pause').click(function() {})
+	$('#pause').click(function() {
+		continuousMoves = false
+		$('#play').prop('disabled', false)
+		$('#pause').prop('disabled', true)
+		clearTimeout(timeoutID)			
+	})
 	$('#step').prop('disabled', true)
-	$('#step').click(function() {})			// Step all ants in the population
+	$('#step').click(function() {
+		step()
+	})
 	$('#step_ant').prop('disabled', true)
-	$('#step_ant').click(function() {})		// Step next visible ant, or next ant if no zoom
+	$('#step_ant').click(function() {
+		stepAnt()
+	})
 	$('#max_players').val(maxPlayers)
 	$('#max_players').change(function() {
 		maxPlayers = $('#max_players').val()
@@ -97,7 +135,7 @@ function initialiseInterface() {
 		$('#top_hidden_area').show(300)
 		$('#bottom_hidden_area').show(300)
 		$('#abandon_game').show(300)
-		$('#abandon_tournament').show(300)
+		$('#reset_leaderboard').show(300)
 	})
 	$('#abandon_game').prop('disabled', true)
 	$('#abandon_game').click(function() {
@@ -184,12 +222,44 @@ function moveNextAnt() {
 	
 	currentAnt = (currentAnt + 1) % population.length
 	if (continuousMoves) {
-		if (currentAnt === 0) {
-			setTimeout(moveNextAnt, delay)
+		if (currentAnt === 0 && display) {
+			timeoutID = setTimeout(moveNextAnt, delay)
 		} else {
-			setTimeout(moveNextAnt, 0)
+			timeoutID = setTimeout(moveNextAnt, 0)
+		}
+	} else {
+		if (singleAntStep) {
+			if (zoomed && !visible(currentAnt)) {
+				timeoutID = setTimeout(moveNextAnt, 0)
+			}
+		} else {
+			if (currentAnt !== 0) {
+				timeoutID = setTimeout(moveNextAnt, 0)
+			}
 		}
 	}
+}
+
+function step() {
+	continuousMoves = false
+	singleAntStep = false
+	$('#play').prop('disabled', false)
+	$('#pause').prop('disabled', true)
+	clearTimeout(timeoutID)
+	moveNextAnt()		
+}
+
+function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if display not hidden)
+	continuousMoves = false
+	singleAntStep = true
+	$('#play').prop('disabled', false)
+	$('#pause').prop('disabled', true)
+	clearTimeout(timeoutID)
+	moveNextAnt()
+}
+
+function visible(ant) {
+	// return true if the ant is within the zoomed area, including the first layer of out of range cells since they still affect the area 
 }
 
 /* PLAYER LOADING */
