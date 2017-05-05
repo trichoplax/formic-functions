@@ -23,12 +23,16 @@ function setGlobals() {
 	maxPlayers = 16
 	display = true
 	zoomed = false
+	zoomLocked = false
 	continuousMoves = true
 	singleAntStep = false
 	gameInProgress = false
 	ongoingTournament = false
 	currentGameInfo = []
 	arena = []
+	zoomedAreaCentreX = 0
+	zoomedAreaCentreY = 0
+	zoomOnLeft = true
 	timeoutID = 0
 }
 
@@ -126,9 +130,21 @@ function initialiseInterface() {
 		maxPlayers = $('#max_players').val()
 	})
 	$('#fit_canvas').click(function() {})
-	$('#arena_canvas').mousemove(function() {})		// Relocate zoomed region unless frozen
-	$('#arena_canvas').mouseleave(function() {})	// Remove zoomed region unless frozen
-	$('#arena_canvas').click(function() {})			// Toggle freezing of location of zoomed region
+	$('#arena_canvas').mousemove(function(event) {
+		if (!zoomLocked) {
+			zoomed = true
+			zoomedAreaCentreX = event.offsetX
+			zoomedAreaCentreY = event.offsetY
+		}
+	})
+	$('#arena_canvas').mouseleave(function() {
+		if (!zoomLocked) {
+			zoomed = false
+		}
+	})
+	$('#arena_canvas').click(function() {
+		zoomLocked = !zoomLocked
+	})
 	$('#restore_display').hide()
 	$('#restore_display').click(function() {
 		$('#restore_display').hide(300)
@@ -221,20 +237,27 @@ function moveNextAnt() {
 	
 	
 	currentAnt = (currentAnt + 1) % population.length
-	if (continuousMoves) {
-		if (currentAnt === 0 && display) {
-			timeoutID = setTimeout(moveNextAnt, delay)
-		} else {
-			timeoutID = setTimeout(moveNextAnt, 0)
-		}
-	} else {
-		if (singleAntStep) {
-			if (zoomed && !visible(currentAnt)) {
+	if (display) {
+		if (continuousMoves) {
+			if (currentAnt === 0) {
+				timeoutID = setTimeout(moveNextAnt, delay)
+				displayArena()
+			} else {
 				timeoutID = setTimeout(moveNextAnt, 0)
 			}
 		} else {
-			if (currentAnt !== 0) {
-				timeoutID = setTimeout(moveNextAnt, 0)
+			if (singleAntStep) {
+				if (zoomed && !visible(currentAnt)) {
+					timeoutID = setTimeout(moveNextAnt, 0)
+				} else {
+					displayArena()
+				}
+			} else {
+				if (currentAnt !== 0) {
+					timeoutID = setTimeout(moveNextAnt, 0)
+				} else {
+					displayArena()
+				}
 			}
 		}
 	}
@@ -261,6 +284,16 @@ function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if d
 function visible(ant) {
 	// return true if the ant is within the zoomed area, including the first layer of out of range cells since they still affect the area 
 }
+
+function displayArena() {
+	
+	if (zoomed) {
+		displayZoomedArea()
+	}
+}
+
+function displayZoomedArea() {}
+
 
 /* PLAYER LOADING */
 
