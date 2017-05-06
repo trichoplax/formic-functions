@@ -29,11 +29,21 @@ function setGlobals() {
 	gameInProgress = false
 	ongoingTournament = false
 	currentGameInfo = []
-	arena = []
 	zoomedAreaCentreX = 0
 	zoomedAreaCentreY = 0
 	zoomOnLeft = true
 	timeoutID = 0
+	arenaWidth = 2500
+	arenaHeight = 1000
+	arenaArea = arenaWidth * arenaHeight
+	arena = new Array(arenaArea)
+	for (i=0; i<arenaArea; i++) {
+		arena[i] = {
+			food: 0,
+			colour: 0,
+			ant: null
+		}
+	}
 }
 
 /* HELPERS */
@@ -231,7 +241,30 @@ function displayLeaderboard() {
 
 /* GAMEPLAY */
 
-function startNewGame() {}
+function startNewGame() {
+	for (i=0; i<arenaWidth; i++) {
+		arena[i].food = 1
+	}
+	for (i=arenaWidth; i<arenaArea; i++) {
+		arena[i].food = 0
+	}
+	for (i=0; i<arenaArea; i++) {
+		otherCell = rand(arenaArea)
+		temp = arena[i].food
+		arena[i].food = arena[otherCell].food
+		arena[otherCell].food = temp
+		
+		arena[i].colour = 0
+		arena[i].ant = null
+	}
+	// make list of included players based on leaderboard checkboxes
+	// number of players = min(included players, max players from input)
+	// choose this many players without replacement
+	// place each queen in an empty cell (no other queen or food, but may be adjacent to either)
+	
+
+
+}
 
 function moveNextAnt() {
 	
