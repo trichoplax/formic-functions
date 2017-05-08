@@ -48,7 +48,21 @@ function setGlobals() {
 
 /* HELPERS */
 
-function decode(html) { return $('<textarea>').html(html).text() }
+function decode(html) {
+	return $('<textarea>').html(html).text()
+}
+
+random = (function() {
+	a = new Uint16Array(32768)
+	x = a.length - 1
+	return function(n) {
+		x = (x + 1) % a.length
+		if (x === 0) {
+			window.crypto.getRandomValues(a)
+		}
+		return a[x] % n
+	}
+})
 
 /* INTERFACE */
 
@@ -259,7 +273,7 @@ function startNewGame() {
 		arena[i].food = 0
 	}
 	for (i=0; i<arenaArea; i++) {
-		otherCell = rand(arenaArea)
+		otherCell = random(arenaArea)
 		temp = arena[i].food
 		arena[i].food = arena[otherCell].food
 		arena[otherCell].food = temp
@@ -275,7 +289,7 @@ function startNewGame() {
 	})
 	numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
 	for (i=0; i<numberOfPlayers; i++) {
-		r = rand(numberOfPlayers)
+		r = random(numberOfPlayers)
 		temp = includedPlayers[i]
 		includedPlayers[i] = includedPlayers[r]
 		includedPlayers[r] = temp
@@ -283,8 +297,8 @@ function startNewGame() {
 	playersThisGame = includedPlayers.slice(0, numberOfPlayers)
 	playersThisGame.forEach(function(player) {
 		while (true) {
-			x = rand(arenaWidth)
-			y = rand(arenaHeight)
+			x = random(arenaWidth)
+			y = random(arenaHeight)
 			if (arena[x + y*arenaWidth].ant === null && arena[x + y*arenaWidth].food === 0) {
 				arena[x + y*arenaWidth].ant = {
 					player: player,
