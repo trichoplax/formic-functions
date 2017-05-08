@@ -71,8 +71,13 @@ function initialiseInterface() {
 		$('#run_ongoing_tournament').html('<h2>Run ongoing tournament</h2>')
 		$('#run_ongoing_tournament').prop('disabled', false)
 		$('#no_display').prop('disabled', false)
-		$('#play').prop('disabled', false)
-		$('#pause').prop('disabled', false)
+		if (continuousMoves) {
+			$('#play').prop('disabled', true)
+			$('#pause').prop('disabled', false)
+		} else {
+			$('#play').prop('disabled', false)
+			$('#pause').prop('disabled', true)
+		}
 		$('#step').prop('disabled', false)
 		$('#step_ant').prop('disabled', false)
 		$('#abandon_game').prop('disabled', false)
@@ -88,8 +93,13 @@ function initialiseInterface() {
 		$('#run_ongoing_tournament').html('<h2>Running ongoing tournament</h2>')
 		$('#run_ongoing_tournament').prop('disabled', true)
 		$('#no_display').prop('disabled', false)
-		$('#play').prop('disabled', false)
-		$('#pause').prop('disabled', false)
+		if (continuousMoves) {
+			$('#play').prop('disabled', true)
+			$('#pause').prop('disabled', false)
+		} else {
+			$('#play').prop('disabled', false)
+			$('#pause').prop('disabled', true)
+		}
 		$('#step').prop('disabled', false)
 		$('#step_ant').prop('disabled', false)
 		$('#abandon_game').prop('disabled', false)
@@ -275,7 +285,7 @@ function startNewGame() {
 		while (true) {
 			x = rand(arenaWidth)
 			y = rand(arenaHeight)
-			if (arena[x + y*arenaWidth].ant = null && arena[x + y*arenaWidth].food = 0) {
+			if (arena[x + y*arenaWidth].ant === null && arena[x + y*arenaWidth].food === 0) {
 				arena[x + y*arenaWidth].ant = {
 					player: player,
 					type: 0,
