@@ -257,13 +257,36 @@ function startNewGame() {
 		arena[i].colour = 0
 		arena[i].ant = null
 	}
-	// make list of included players based on leaderboard checkboxes
-	// number of players = min(included players, max players from input)
-	// choose this many players without replacement
-	// place each queen in an empty cell (no other queen or food, but may be adjacent to either)
-	
-
-
+	includedPlayers = []
+	players.forEach(function(player) {
+		if (player['included']) {
+			includedPlayers.push(player)
+		}
+	})
+	numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
+	for (i=0; i<numberOfPlayers; i++) {
+		r = rand(numberOfPlayers)
+		temp = includedPlayers[i]
+		includedPlayers[i] = includedPlayers[r]
+		includedPlayers[r] = temp
+	}
+	playersThisGame = includedPlayers.slice(0, numberOfPlayers)
+	playersThisGame.forEach(function(player) {
+		while (true) {
+			x = rand(arenaWidth)
+			y = rand(arenaHeight)
+			if (arena[x + y*arenaWidth].ant = null && arena[x + y*arenaWidth].food = 0) {
+				arena[x + y*arenaWidth].ant = {
+					player: player,
+					type: 0,
+					food: 0
+				}
+				break
+			}
+		}
+	})
+	clearTimeout(timeoutID)
+	timeoutID = setTimeout(moveNextAnt, 0)
 }
 
 function moveNextAnt() {
