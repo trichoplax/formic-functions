@@ -19,7 +19,7 @@ function setGlobals() {
 	leaderboardInfo = []
 	population = []
 	delay = 150
-	currentAnt = 0
+	currentAntIndex = 0
 	maxPlayers = 16
 	display = true
 	zoomed = false
@@ -40,10 +40,16 @@ function setGlobals() {
 	for (i=0; i<arenaArea; i++) {
 		arena[i] = {
 			food: 0,
-			colour: 0,
+			colour: 1,
 			ant: null
 		}
 	}
+	rotator = [
+		[0, 1, 2, 3, 4, 5, 6, 7, 8],
+		[6, 3, 0, 7, 4, 1, 8, 5, 2],
+		[8, 7, 6, 5, 4, 3, 2, 1, 0],
+		[2, 5, 8, 1, 4, 7, 0, 3, 6]
+	]
 }
 
 /* HELPERS */
@@ -62,7 +68,7 @@ random = (function() {
 		}
 		return a[x] % n
 	}
-})
+})()
 
 /* INTERFACE */
 
@@ -142,7 +148,7 @@ function initialiseInterface() {
 		$('#play').prop('disabled', true)
 		$('#pause').prop('disabled', false)
 		clearTimeout(timeoutID)
-		moveNextAnt()			
+		processCurrentAnt()			
 	})
 	$('#pause').prop('disabled', true)
 	$('#pause').click(function() {
@@ -310,31 +316,60 @@ function startNewGame() {
 		}
 	})
 	clearTimeout(timeoutID)
-	timeoutID = setTimeout(moveNextAnt, 0)
+	timeoutID = setTimeout(processCurrentAnt, 0)
 }
 
-function moveNextAnt() {
+function processCurrentAnt() {
+	currentAnt = population[currentAntIndex]
 	
+	unrotatedView = nineVisibleSquares()
 	
-	currentAnt = (currentAnt + 1) % population.length
+	var rotation = random(4)
+	rotatedView = []
+	for (i=0; i<9; i++) {
+		rotatedView.push(unrotatedView[rotator[rotation][i]])
+	}
+	response = getMove(rotatedView)
+	targetCell = rotator[rotation][response.cell]
+	
+	if (response.colour) {
+		if (response.workerType) {
+			console.log('Not permitted: Both colour and worker type specified.')
+		} else {
+			setColour()
+		}
+	} else {
+		if (response.workerType) {
+			makeWorker()
+		} else {
+			moveAnt()
+		}
+	}
+		
+	passFood()	
+	prepareForNextAnt()
+}
+
+function prepareForNextAnt() {
+	currentAntIndex = (currentAntIndex + 1) % population.length
 	if (display) {
 		if (continuousMoves) {
-			if (currentAnt === 0) {
-				timeoutID = setTimeout(moveNextAnt, delay)
+			if (currentAntIndex === 0) {
+				timeoutID = setTimeout(processCurrentAnt, delay)
 				displayArena()
 			} else {
-				timeoutID = setTimeout(moveNextAnt, 0)
+				timeoutID = setTimeout(processCurrentAnt, 0)
 			}
 		} else {
 			if (singleAntStep) {
-				if (zoomed && !visible(currentAnt)) {
-					timeoutID = setTimeout(moveNextAnt, 0)
+				if (zoomed && !visible(currentAntIndex)) {
+					timeoutID = setTimeout(processCurrentAnt, 0)
 				} else {
 					displayArena()
 				}
 			} else {
-				if (currentAnt !== 0) {
-					timeoutID = setTimeout(moveNextAnt, 0)
+				if (currentAntIndex !== 0) {
+					timeoutID = setTimeout(processCurrentAnt, 0)
 				} else {
 					displayArena()
 				}
@@ -343,13 +378,50 @@ function moveNextAnt() {
 	}
 }
 
+function nineVisibleSquares() {
+	var view = []
+	for (vertical=-1; vertical<=1; y++) {
+		for (horizontal=-1; horizontal<=1; x++) {
+			x = (horizontal + arenaWidth) % arenaWidth
+			y = (vertical + arenaHeight) % arenaHeight
+			var arenaSquare = arena[x + y*arenaWidth]
+			var square = {}
+			square.colour = arenaSquare.colour
+			square.food = arenaSquare.food
+			var ant = arenaSquare.ant
+			if (ant) {
+				if (ant.player = currentAnt.player) {
+					square.friend = {
+						food: ant.food,
+						type: ant.type
+					}
+					square.enemy = null
+				} else {
+					square.friend = null
+					square.enemy = {
+						food: ant.food,
+						type: Math.sign(ant.type)
+					}
+				}
+			} else {
+				square.friend = null
+				square.enemy = null
+			}
+			view.push(square)
+		}
+	}
+	return view
+}
+
+function getMove() {}
+
 function step() {
 	continuousMoves = false
 	singleAntStep = false
 	$('#play').prop('disabled', false)
 	$('#pause').prop('disabled', true)
 	clearTimeout(timeoutID)
-	moveNextAnt()		
+	processCurrentAnt()		
 }
 
 function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if display not hidden)
@@ -358,7 +430,7 @@ function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if d
 	$('#play').prop('disabled', false)
 	$('#pause').prop('disabled', true)
 	clearTimeout(timeoutID)
-	moveNextAnt()
+	processCurrentAnt()
 }
 
 function visible(ant) {
