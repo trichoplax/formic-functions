@@ -54,19 +54,31 @@ function setGlobals() {
 
 /* HELPERS */
 
+function maskedEval(functionBody, params) //thanks http://stackoverflow.com/a/543820
+{
+    var mask = {}
+    for (i in this)
+        mask[i] = undefined
+    for (i in params) {
+        if (params.hasOwnProperty(i))
+            mask[i] = params[i]
+    }
+    return (new Function('with(this) { ' + functionBody + ';}')).call(mask)
+}
+
 function decode(html) {
 	return $('<textarea>').html(html).text()
 }
 
 random = (function() {
 	a = new Uint16Array(32768)
-	x = a.length - 1
+	i = a.length - 1
 	return function(n) {
-		x = (x + 1) % a.length
-		if (x === 0) {
+		i = (i + 1) % a.length
+		if (i === 0) {
 			window.crypto.getRandomValues(a)
 		}
-		return a[x] % n
+		return a[i] % n
 	}
 })()
 
@@ -268,7 +280,6 @@ function displayLeaderboard() {
 	})	
 }
 
-
 /* GAMEPLAY */
 
 function startNewGame() {
@@ -320,18 +331,15 @@ function startNewGame() {
 }
 
 function processCurrentAnt() {
-	currentAnt = population[currentAntIndex]
-	
-	unrotatedView = nineVisibleSquares()
-	
+	currentAnt = population[currentAntIndex]	
+	unrotatedView = nineVisibleSquares()	
 	var rotation = random(4)
 	rotatedView = []
 	for (i=0; i<9; i++) {
 		rotatedView.push(unrotatedView[rotator[rotation][i]])
 	}
 	response = getMove(rotatedView)
-	targetCell = rotator[rotation][response.cell]
-	
+	targetCell = rotator[rotation][response.cell]	
 	if (response.colour) {
 		if (response.workerType) {
 			console.log('Not permitted: Both colour and worker type specified.')
@@ -344,8 +352,7 @@ function processCurrentAnt() {
 		} else {
 			moveAnt()
 		}
-	}
-		
+	}		
 	passFood()	
 	prepareForNextAnt()
 }
