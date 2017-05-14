@@ -75,10 +75,14 @@
   </table>
   
   <div id='bottom_hidden_area'>
-    Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
-    
+    <div>
+    	Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
+    </div>
+    <div>
+	    Logging to console for debugging:<input id='debug' type='checkbox'></input>
+    </div>
     <h3>New challenger</h3>
-    <textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - enter function to be tested here)' rows='30' spellcheck='false'></textarea>
+    <textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - enter function body to be tested here)' rows='30' spellcheck='false'></textarea>
   </div>
 
 </body>

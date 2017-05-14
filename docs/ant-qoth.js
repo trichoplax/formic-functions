@@ -19,6 +19,7 @@ function setGlobals() {
 	leaderboardInfo = []
 	population = []
 	delay = 150
+	debug = true
 	currentAntIndex = 0
 	maxPlayers = 16
 	display = true
@@ -33,6 +34,8 @@ function setGlobals() {
 	zoomedAreaCentreY = 0
 	zoomOnLeft = true
 	timeoutID = 0
+	permittedTime = 5
+	noMove = {cell: 4, colour: 0, workerType: 0}
 	arenaWidth = 2500
 	arenaHeight = 1000
 	arenaArea = arenaWidth * arenaHeight
@@ -54,7 +57,7 @@ function setGlobals() {
 
 /* HELPERS */
 
-function maskedEval(functionBody, params) //thanks http://stackoverflow.com/a/543820
+function maskedEval(functionBody, params) //thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
 {
     var mask = {}
     for (i in this)
@@ -227,7 +230,14 @@ function initialiseInterface() {
 		leaderboardInfo = []
 		initialiseLeaderboard()
 	})
-	$('#permitted_time_override').change(function() {})
+	$('#permitted_time_override').val(permittedTime)
+	$('#permitted_time_override').change(function() {
+		permittedTime = $('#permitted_time_override').val()
+	})
+	$('#debug').val(debug)
+	$('#debug').change(function() {
+		debug = $('#debug').val()
+	})
 	$('#new_challenger_text').change(function() {})
 
 }
@@ -313,15 +323,21 @@ function startNewGame() {
 	}
 	playersThisGame = includedPlayers.slice(0, numberOfPlayers)
 	playersThisGame.forEach(function(player) {
+		player.time = 0
+		player.permittedTime = 0
 		while (true) {
 			x = random(arenaWidth)
 			y = random(arenaHeight)
 			if (arena[x + y*arenaWidth].ant === null && arena[x + y*arenaWidth].food === 0) {
-				arena[x + y*arenaWidth].ant = {
+				var ant = {
 					player: player,
 					type: 0,
-					food: 0
+					food: 0,
+					x: x,
+					y: y
 				}
+				arena[x + y*arenaWidth].ant = ant
+				population.push(ant)
 				break
 			}
 		}
@@ -339,6 +355,11 @@ function processCurrentAnt() {
 		rotatedView.push(unrotatedView[rotator[rotation][i]])
 	}
 	response = getMove(rotatedView)
+	if (debug) {
+		console.log('Rotated view: ' + rotatedView)
+		console.log('Unrotated view: ' + unrotatedView)
+		console.log('Response: ' + response)
+	}
 	targetCell = rotator[rotation][response.cell]	
 	if (response.colour) {
 		if (response.workerType) {
@@ -356,6 +377,8 @@ function processCurrentAnt() {
 	passFood()	
 	prepareForNextAnt()
 }
+
+function passFood() {}
 
 function prepareForNextAnt() {
 	currentAntIndex = (currentAntIndex + 1) % population.length
@@ -420,7 +443,40 @@ function nineVisibleSquares() {
 	return view
 }
 
-function getMove() {}
+function getMove(ant) {
+	var player = ant.player
+	var code = player.code
+	var parameters = {}
+	parameters.view = rotatedView
+	if (id === 0) {
+		parameters.console = console
+	}
+	time = performance.now()
+	try {
+		response = maskedEval(code, parameters)
+	} catch(e) {
+		response = noMove
+		disqualifyPlayer(e + '    Disqualified for error')
+	}
+	time = performance.now() - time
+	if (debug && time > permittedTime) {
+		console.log('Exceeded permitted time of ' + permittedTime + 'ms: ' + time)
+	}
+	player.time += time
+	player.permittedTime += permittedTime
+	if (player.time > 10000 && player.time > player.permittedTime) {
+		response = noMove
+		disqualifyPlayer('    Disqualified for exceeding permitted time')
+	}
+	return response
+}
+
+function disqualifyPlayer(message) {
+	if (debug) {
+		console.log(message)
+	}
+	
+}
 
 function step() {
 	continuousMoves = false
