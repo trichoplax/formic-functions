@@ -53,6 +53,20 @@ function setGlobals() {
 		[8, 7, 6, 5, 4, 3, 2, 1, 0],
 		[2, 5, 8, 1, 4, 7, 0, 3, 6]
 	]
+	arenaCanvas = document.createElement('canvas')
+	arenaCanvas.width = arenaWidth
+	arenaCanvas.height = arenaHeight
+	arenaCtx = arenaCanvas.getContext('2d')
+	arenaImage = arenaCtx.createImageData(arenaWidth, arenaHeight)
+	
+	zoomCanvas = document.createElement('canvas')
+	zoomCanvas.width = 1000
+	zoomCanvas.height = 1000
+	zoomCtx = zoomCanvas.getContext('2d')
+	zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
+	
+	displayCanvas = document.getElementById('display_canvas')
+	displayCtx = displayCanvas.getContext('2d')	
 }
 
 /* HELPERS */
@@ -73,8 +87,8 @@ function decode(html) {
 	return $('<textarea>').html(html).text()
 }
 
-random = (function() {
-	a = new Uint16Array(32768)
+cryptoRandom = (function() {
+	a = new Uint32Array(16384)
 	i = a.length - 1
 	return function(n) {
 		i = (i + 1) % a.length
@@ -84,6 +98,17 @@ random = (function() {
 		return a[i] % n
 	}
 })()
+
+seededRandomInitialiser = function(seed) {		// thanks https://en.wikipedia.org/wiki/Xorshift
+	var stateArray = new Uint32Array(1)
+	stateArray[0] = seed
+	return function(n) {
+		stateArray[0] ^= stateArray[0] << 13
+		stateArray[0] ^= stateArray[0] >> 17
+		stateArray[0] ^= stateArray[0] << 5
+		return stateArray[0] % n
+	}
+}
 
 /* INTERFACE */
 
@@ -185,19 +210,19 @@ function initialiseInterface() {
 		maxPlayers = $('#max_players').val()
 	})
 	$('#fit_canvas').click(function() {})
-	$('#arena_canvas').mousemove(function(event) {
+	$('#display_canvas').mousemove(function(event) {
 		if (!zoomLocked) {
 			zoomed = true
 			zoomedAreaCentreX = event.offsetX
 			zoomedAreaCentreY = event.offsetY
 		}
 	})
-	$('#arena_canvas').mouseleave(function() {
+	$('#display_canvas').mouseleave(function() {
 		if (!zoomLocked) {
 			zoomed = false
 		}
 	})
-	$('#arena_canvas').click(function() {
+	$('#display_canvas').click(function() {
 		zoomLocked = !zoomLocked
 	})
 	$('#restore_display').hide()
@@ -221,7 +246,7 @@ function initialiseInterface() {
 			$('#pause').prop('disabled', true)
 			$('#step').prop('disabled', true)
 			$('#step_ant').prop('disabled', true)
-			$('#abandon_game').prop('disabled',true)
+			$('#abandon_game').prop('disabled', true)
 		}		
 	})
 	$('#reset_leaderboard').prop('disabled', true)
@@ -234,12 +259,16 @@ function initialiseInterface() {
 	$('#permitted_time_override').change(function() {
 		permittedTime = $('#permitted_time_override').val()
 	})
-	$('#debug').val(debug)
+	$('#debug').prop('checked', debug)
 	$('#debug').change(function() {
-		debug = $('#debug').val()
+		debug = $('#debug').prop('checked')
 	})
+	$('#seeded_random').prop('checked', false)
+	$('#seeded_random').change(function() {
+		$('#seed').prop('disabled', !$('#seeded_random').prop('checked'))
+	})
+	$('#seed').prop('disabled', true)
 	$('#new_challenger_text').change(function() {})
-
 }
 
 function showLoadedTime() {
@@ -293,6 +322,11 @@ function displayLeaderboard() {
 /* GAMEPLAY */
 
 function startNewGame() {
+	if ($('#seeded_random').prop('checked')) {
+		random = seededRandomInitialiser($('#seed').val())
+	} else {
+		random = cryptoRandom
+	}
 	for (i=0; i<arenaWidth; i++) {
 		arena[i].food = 1
 	}
