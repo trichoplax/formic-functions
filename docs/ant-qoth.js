@@ -239,7 +239,14 @@ function initialiseInterface() {
 	$('#max_players').change(function() {
 		maxPlayers = $('#max_players').val()
 	})
-	$('#fit_canvas').click(function() {})
+	$('#fit_canvas').click(function() {
+		displayCanvas.style.borderLeft = "none"
+		displayCanvas.style.borderRight = "none"
+		displayCanvas.width = document.body.clientWidth
+		displayCanvas.height = displayCanvas.width * 500/1250
+		$('#new_challenger_text').width(Math.min(1250, displayCanvas.width - 20))
+		displayArena()
+	})
 	$('#display_canvas').mousemove(function(event) {
 		if (!zoomLocked) {
 			zoomed = true
