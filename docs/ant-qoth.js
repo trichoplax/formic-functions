@@ -19,7 +19,7 @@ function setGlobals() {
 	leaderboardInfo = []
 	population = []
 	delay = 150
-	debug = true
+	debug = $('#debug').prop('checked')
 	currentAntIndex = 0
 	maxPlayers = 16
 	display = true
@@ -66,6 +66,8 @@ function setGlobals() {
 	zoomCanvas.width = 1000
 	zoomCanvas.height = 1000
 	zoomCtx = zoomCanvas.getContext('2d')
+	zoomCellsPerSide = 25
+	zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
 	zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
 	for (var i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
 		zoomImage.data[i*4 + 3] = 255
@@ -80,6 +82,7 @@ function setGlobals() {
 	arenaColour.food = [0, 0, 0]
 	arenaColour.ant = [255, 0, 0]
 	arenaColour.tile = [
+		null,
 		[255, 255, 255],
 		[255, 255, 0],
 		[255, 0, 255],
@@ -97,6 +100,36 @@ function setGlobals() {
 		[128, 255, 255],
 		[0, 0, 0]
 	]
+	
+	paletteCanvas = document.createElement('canvas')
+	paletteCanvas.width = 17
+	paletteCanvas.height = 1
+	paletteCtx = paletteCanvas.getContext('2d')
+	paletteImage = paletteCtx.createImageData(paletteCanvas.width, paletteCanvas.height)
+	for (var i=1; i<paletteCanvas.width; i++) {
+		for (var c=0; c<3; c++) {
+			paletteImage.data[i*4 + c] = arenaColour.tile[i][c]
+		}
+		paletteImage.data[i*4 + 3] = 255
+	}
+	paletteCtx.putImageData(paletteImage, 0, 0)
+	
+	foodCanvas = document.createElement('canvas')
+	foodCanvas.width = zoomCellSideLength
+	foodCanvas.height = zoomCellSideLength
+	foodCtx = foodCanvas.getContext('2d')
+	foodImage = foodCtx.createImageData(foodCanvas.width, foodCanvas.height)
+	for (var y=0; y<foodCanvas.height; y++) {
+		for (var x=0; x<foodCanvas.width; x++) {
+			if (Math.abs(x - foodCanvas.width/2) + Math.abs(y - foodCanvas.width/2) < foodCanvas.width/2) {
+				for (var c=0; c<3; c++) {
+					foodImage.data[(x + y*foodCanvas.width)*4 + c] = arenaColour.food[c]
+				}
+				foodImage.data[(x + y*foodCanvas.width)*4 + 3] = 255
+			}
+		}
+	}
+	foodCtx.putImageData(foodImage, 0, 0)
 }
 
 /* HELPERS */
@@ -250,13 +283,21 @@ function initialiseInterface() {
 	$('#display_canvas').mousemove(function(event) {
 		if (!zoomLocked) {
 			zoomed = true
-			zoomedAreaCentreX = event.offsetX
-			zoomedAreaCentreY = event.offsetY
+			zoomedAreaCentreX = event.offsetX * arenaWidth / displayCanvas.width
+			zoomedAreaCentreY = event.offsetY * arenaHeight / displayCanvas.height
+			if (zoomedAreaCentreX < arenaHeight + zoomCellsPerSide) {
+				zoomOnLeft = false
+			} else if (zoomedAreaCentreX > arenaWidth - arenaHeight - zoomCellsPerSide) {
+				zoomOnLeft = true
+			}
+			fillZoomCanvas()
+			displayArena()
 		}
 	})
 	$('#display_canvas').mouseleave(function() {
 		if (!zoomLocked) {
 			zoomed = false
+			displayArena()
 		}
 	})
 	$('#display_canvas').click(function() {
@@ -296,7 +337,6 @@ function initialiseInterface() {
 	$('#permitted_time_override').change(function() {
 		permittedTime = $('#permitted_time_override').val()
 	})
-	$('#debug').prop('checked', debug)
 	$('#debug').change(function() {
 		debug = $('#debug').prop('checked')
 	})
@@ -379,7 +419,48 @@ function fillArenaCanvas() {
 	arenaCtx.putImageData(arenaImage, 0, 0)
 }
 
-function fillZoomCanvas() {}
+function fillZoomCanvas() {
+	var left = Math.floor((zoomedAreaCentreX - zoomCellsPerSide/2 + arenaWidth) % arenaWidth)
+	var top = Math.floor((zoomedAreaCentreY - zoomCellsPerSide/2 + arenaHeight) % arenaHeight)
+	for (var y=0; y<zoomCellsPerSide; y++) {
+		wrappedY = (y + top) % arenaHeight
+		for (var x=0; x<zoomCellsPerSide; x++) {
+			wrappedX = (x + left) % arenaWidth
+			var cell = arena[wrappedX + wrappedY*arenaWidth]
+			paintTile(x, y, cell.colour)
+			if (cell.food) {
+				paintFood(x, y)
+			} else if (cell.ant) {
+				paintAnt(x, y, cell.ant)
+			}
+		}
+	}
+}
+
+function paintTile(x, y, colour) {
+	zoomCtx.drawImage(paletteCanvas, colour, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
+}
+
+function paintFood(x, y) {
+	zoomCtx.drawImage(foodCanvas, 0, 0, zoomCellSideLength, zoomCellSideLength, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength)
+}
+
+function paintAnt(x, y, ant) {}
+
+function displayArena() {
+	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
+	if (zoomed) {
+		displayZoomedArea()
+	}
+}
+
+function displayZoomedArea() {
+	if (zoomOnLeft) {
+		displayCtx.drawImage(zoomCanvas, 0, 0, zoomCanvas.width, zoomCanvas.height, 0, 0, displayCanvas.height, displayCanvas.height)
+	} else {
+		displayCtx.drawImage(zoomCanvas, 0, 0, zoomCanvas.width, zoomCanvas.height, displayCanvas.width - displayCanvas.height, 0, displayCanvas.height, displayCanvas.height)		
+	}
+}
 
 /* GAMEPLAY */
 
@@ -402,7 +483,7 @@ function startNewGame() {
 			arena[i].food = arena[otherCell].food
 			arena[otherCell].food = temp
 		
-			arena[i].colour = 0
+			arena[i].colour = 1
 			arena[i].ant = null
 		}
 	}
@@ -607,17 +688,6 @@ function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if d
 function visible(ant) {
 	// return true if the ant is within the zoomed area, including the first layer of out of range cells since they still affect the area 
 }
-
-function displayArena() {
-	console.log('arenaWidth: ' + arenaWidth + ' arenaHeight: ' + arenaHeight + ' displayCanvas.width: ' + displayCanvas.width + ' displayCanvas.height: ' + displayCanvas.height)
-	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
-	if (zoomed) {
-		displayZoomedArea()
-	}
-}
-
-function displayZoomedArea() {}
-
 
 /* PLAYER LOADING */
 
