@@ -40,7 +40,7 @@ function setGlobals() {
 	arenaHeight = 1000
 	arenaArea = arenaWidth * arenaHeight
 	arena = new Array(arenaArea)
-	for (i=0; i<arenaArea; i++) {
+	for (var i=0; i<arenaArea; i++) {
 		arena[i] = {
 			food: 0,
 			colour: 1,
@@ -58,15 +58,45 @@ function setGlobals() {
 	arenaCanvas.height = arenaHeight
 	arenaCtx = arenaCanvas.getContext('2d')
 	arenaImage = arenaCtx.createImageData(arenaWidth, arenaHeight)
+	for (var i=0; i<arenaCanvas.width*arenaCanvas.height; i++) {
+		arenaImage.data[i*4 + 3] = 255
+	}
 	
 	zoomCanvas = document.createElement('canvas')
 	zoomCanvas.width = 1000
 	zoomCanvas.height = 1000
 	zoomCtx = zoomCanvas.getContext('2d')
 	zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
+	for (var i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
+		zoomImage.data[i*4 + 3] = 255
+	}
 	
 	displayCanvas = document.getElementById('display_canvas')
-	displayCtx = displayCanvas.getContext('2d')	
+	displayCanvas.width = 1250
+	displayCanvas.height = 500
+	displayCtx = displayCanvas.getContext('2d')
+	
+	arenaColour = {}
+	arenaColour.food = [0, 0, 0]
+	arenaColour.ant = [255, 0, 0]
+	arenaColour.tile = [
+		[255, 255, 255],
+		[255, 255, 0],
+		[255, 0, 255],
+		[0, 255, 255],
+		[255, 0, 0],
+		[0, 255, 0],
+		[0, 0, 255],
+		[128, 128, 128],
+		[128, 128, 0],
+		[128, 0, 128],
+		[0, 128, 128],
+		[128, 0, 0],
+		[0, 128, 0],
+		[0, 0, 128],
+		[128, 255, 255],
+		[0, 0, 0]
+	]
 }
 
 /* HELPERS */
@@ -88,8 +118,8 @@ function decode(html) {
 }
 
 cryptoRandom = (function() {
-	a = new Uint32Array(16384)
-	i = a.length - 1
+	var a = new Uint32Array(16384)
+	var i = a.length - 1
 	return function(n) {
 		i = (i + 1) % a.length
 		if (i === 0) {
@@ -319,6 +349,31 @@ function displayLeaderboard() {
 	})	
 }
 
+function fillArenaCanvas() {
+	for (y=0; y<arenaHeight; y++) {
+		for (x=0; x<arenaWidth; x++) {
+			var cell = arena[x + y*arenaWidth]
+			if (cell.food) {
+				for (var i=0; i<3; i++) {
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.food[i]
+				}
+			} else if (cell.ant) {
+				for (var i=0; i<3; i++) {
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.ant[i]
+				}			
+			} else {
+				for (var i=0; i<3; i++) {
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.tile[cell.colour][i]
+				}			
+			}
+			arenaImage.data[(x + y*arenaWidth) * 4]
+		}
+	}
+	arenaCtx.putImageData(arenaImage, 0, 0)
+}
+
+function fillZoomCanvas() {}
+
 /* GAMEPLAY */
 
 function startNewGame() {
@@ -327,41 +382,43 @@ function startNewGame() {
 	} else {
 		random = cryptoRandom
 	}
-	for (i=0; i<arenaWidth; i++) {
+	for (var i=0; i<arenaWidth; i++) {
 		arena[i].food = 1
 	}
-	for (i=arenaWidth; i<arenaArea; i++) {
+	for (var i=arenaWidth; i<arenaArea; i++) {
 		arena[i].food = 0
 	}
-	for (i=0; i<arenaArea; i++) {
-		otherCell = random(arenaArea)
-		temp = arena[i].food
-		arena[i].food = arena[otherCell].food
-		arena[otherCell].food = temp
+	for (var i=0; i<2; i++) {	// Shuffle twice to disguise bias in the random number generator
+		for (var i=0; i<arenaArea; i++) {
+			var otherCell = random(arenaArea)
+			var temp = arena[i].food
+			arena[i].food = arena[otherCell].food
+			arena[otherCell].food = temp
 		
-		arena[i].colour = 0
-		arena[i].ant = null
+			arena[i].colour = 0
+			arena[i].ant = null
+		}
 	}
-	includedPlayers = []
+	var includedPlayers = []
 	players.forEach(function(player) {
 		if (player['included']) {
 			includedPlayers.push(player)
 		}
 	})
-	numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
+	var numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
 	for (i=0; i<numberOfPlayers; i++) {
-		r = random(numberOfPlayers)
-		temp = includedPlayers[i]
+		var r = random(numberOfPlayers)
+		var temp = includedPlayers[i]
 		includedPlayers[i] = includedPlayers[r]
 		includedPlayers[r] = temp
 	}
-	playersThisGame = includedPlayers.slice(0, numberOfPlayers)
+	var playersThisGame = includedPlayers.slice(0, numberOfPlayers)
 	playersThisGame.forEach(function(player) {
 		player.time = 0
 		player.permittedTime = 0
 		while (true) {
-			x = random(arenaWidth)
-			y = random(arenaHeight)
+			var x = random(arenaWidth)
+			var y = random(arenaHeight)
 			if (arena[x + y*arenaWidth].ant === null && arena[x + y*arenaWidth].food === 0) {
 				var ant = {
 					player: player,
@@ -376,25 +433,29 @@ function startNewGame() {
 			}
 		}
 	})
+	fillArenaCanvas()
+	if (zoomed) {
+		fillZoomCanvas()
+	}
 	clearTimeout(timeoutID)
 	timeoutID = setTimeout(processCurrentAnt, 0)
 }
 
 function processCurrentAnt() {
-	currentAnt = population[currentAntIndex]	
-	unrotatedView = nineVisibleSquares()	
+	var currentAnt = population[currentAntIndex]	
+	var unrotatedView = nineVisibleSquares(currentAnt)	
 	var rotation = random(4)
-	rotatedView = []
+	var rotatedView = []
 	for (i=0; i<9; i++) {
 		rotatedView.push(unrotatedView[rotator[rotation][i]])
 	}
-	response = getMove(rotatedView)
+	var response = getMove(currentAnt, rotatedView)
 	if (debug) {
 		console.log('Rotated view: ' + rotatedView)
 		console.log('Unrotated view: ' + unrotatedView)
 		console.log('Response: ' + response)
 	}
-	targetCell = rotator[rotation][response.cell]	
+	var targetCell = rotator[rotation][response.cell]	
 	if (response.colour) {
 		if (response.workerType) {
 			console.log('Not permitted: Both colour and worker type specified.')
@@ -411,6 +472,12 @@ function processCurrentAnt() {
 	passFood()	
 	prepareForNextAnt()
 }
+
+function setColour() {}
+
+function makeWorker() {}
+
+function moveAnt() {}
 
 function passFood() {}
 
@@ -442,12 +509,12 @@ function prepareForNextAnt() {
 	}
 }
 
-function nineVisibleSquares() {
+function nineVisibleSquares(currentAnt) {
 	var view = []
-	for (vertical=-1; vertical<=1; y++) {
-		for (horizontal=-1; horizontal<=1; x++) {
-			x = (horizontal + arenaWidth) % arenaWidth
-			y = (vertical + arenaHeight) % arenaHeight
+	for (var vertical=-1; vertical<=1; vertical++) {
+		for (var horizontal=-1; horizontal<=1; horizontal++) {
+			var x = (horizontal + arenaWidth) % arenaWidth
+			var y = (vertical + arenaHeight) % arenaHeight
 			var arenaSquare = arena[x + y*arenaWidth]
 			var square = {}
 			square.colour = arenaSquare.colour
@@ -477,19 +544,19 @@ function nineVisibleSquares() {
 	return view
 }
 
-function getMove(ant) {
+function getMove(ant, rotatedView) {
 	var player = ant.player
 	var code = player.code
 	var parameters = {}
 	parameters.view = rotatedView
-	if (id === 0) {
+	if (player.id === 0) {
 		parameters.console = console
 	}
-	time = performance.now()
+	var time = performance.now()
 	try {
-		response = maskedEval(code, parameters)
+		var response = maskedEval(code, parameters)
 	} catch(e) {
-		response = noMove
+		var response = noMove
 		disqualifyPlayer(e + '    Disqualified for error')
 	}
 	time = performance.now() - time
@@ -535,7 +602,8 @@ function visible(ant) {
 }
 
 function displayArena() {
-	
+	console.log('arenaWidth: ' + arenaWidth + ' arenaHeight: ' + arenaHeight + ' displayCanvas.width: ' + displayCanvas.width + ' displayCanvas.height: ' + displayCanvas.height)
+	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
 	if (zoomed) {
 		displayZoomedArea()
 	}

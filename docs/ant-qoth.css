@@ -9,9 +9,7 @@ textarea {
   color: #00ff00;
 }
 canvas {
-  border: 0.1em solid black; 
-  width: 1250;
-  height: 500;
+  border: 0.1em solid black;
 }
 table {
   margin-top: 1em;
