@@ -66,7 +66,7 @@ function setGlobals() {
 	zoomCanvas.width = 1000
 	zoomCanvas.height = 1000
 	zoomCtx = zoomCanvas.getContext('2d')
-	zoomCellsPerSide = 25
+	zoomCellsPerSide = $('#squares_per_side').val()
 	zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
 	zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
 	for (var i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
@@ -113,23 +113,6 @@ function setGlobals() {
 		paletteImage.data[i*4 + 3] = 255
 	}
 	paletteCtx.putImageData(paletteImage, 0, 0)
-	
-	foodCanvas = document.createElement('canvas')
-	foodCanvas.width = zoomCellSideLength
-	foodCanvas.height = zoomCellSideLength
-	foodCtx = foodCanvas.getContext('2d')
-	foodImage = foodCtx.createImageData(foodCanvas.width, foodCanvas.height)
-	for (var y=0; y<foodCanvas.height; y++) {
-		for (var x=0; x<foodCanvas.width; x++) {
-			if (Math.abs(x - foodCanvas.width/2) + Math.abs(y - foodCanvas.width/2) < foodCanvas.width/2) {
-				for (var c=0; c<3; c++) {
-					foodImage.data[(x + y*foodCanvas.width)*4 + c] = arenaColour.food[c]
-				}
-				foodImage.data[(x + y*foodCanvas.width)*4 + 3] = 255
-			}
-		}
-	}
-	foodCtx.putImageData(foodImage, 0, 0)
 }
 
 /* HELPERS */
@@ -273,8 +256,8 @@ function initialiseInterface() {
 		maxPlayers = $('#max_players').val()
 	})
 	$('#fit_canvas').click(function() {
-		displayCanvas.style.borderLeft = "none"
-		displayCanvas.style.borderRight = "none"
+		displayCanvas.style.borderLeft = 'none'
+		displayCanvas.style.borderRight = 'none'
 		displayCanvas.width = document.body.clientWidth
 		displayCanvas.height = displayCanvas.width * 500/1250
 		$('#new_challenger_text').width(Math.min(1250, displayCanvas.width - 20))
@@ -285,9 +268,9 @@ function initialiseInterface() {
 			zoomed = true
 			zoomedAreaCentreX = event.offsetX * arenaWidth / displayCanvas.width
 			zoomedAreaCentreY = event.offsetY * arenaHeight / displayCanvas.height
-			if (zoomedAreaCentreX < arenaHeight + zoomCellsPerSide) {
+			if (zoomedAreaCentreX < (arenaWidth + 2*arenaHeight) / 4) {
 				zoomOnLeft = false
-			} else if (zoomedAreaCentreX > arenaWidth - arenaHeight - zoomCellsPerSide) {
+			} else if (zoomedAreaCentreX > (3*arenaWidth - 2*arenaHeight) / 4) {
 				zoomOnLeft = true
 			}
 			fillZoomCanvas()
@@ -346,6 +329,14 @@ function initialiseInterface() {
 	})
 	$('#seed').prop('disabled', true)
 	$('#new_challenger_text').change(function() {})
+	$('#squares_per_side').change(function() {
+		zoomCellsPerSide = $('#squares_per_side').val()
+		zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
+		if (zoomed) {
+			fillZoomCanvas()
+			displayZoomedArea()
+		}
+	})
 }
 
 function showLoadedTime() {
@@ -442,7 +433,12 @@ function paintTile(x, y, colour) {
 }
 
 function paintFood(x, y) {
-	zoomCtx.drawImage(foodCanvas, 0, 0, zoomCellSideLength, zoomCellSideLength, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength)
+	zoomCtx.beginPath()
+	zoomCtx.moveTo((x+1) * zoomCellSideLength, y * zoomCellSideLength + zoomCellSideLength/2)
+	zoomCtx.lineTo(x * zoomCellSideLength + zoomCellSideLength/2, y * zoomCellSideLength)
+	zoomCtx.lineTo(x * zoomCellSideLength, y * zoomCellSideLength + zoomCellSideLength/2)
+	zoomCtx.lineTo(x * zoomCellSideLength + zoomCellSideLength/2, (y+1) * zoomCellSideLength)
+	zoomCtx.fill()
 }
 
 function paintAnt(x, y, ant) {}
