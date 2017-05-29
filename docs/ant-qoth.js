@@ -72,6 +72,7 @@ function setGlobals() {
 	for (var i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
 		zoomImage.data[i*4 + 3] = 255
 	}
+	zoomCtx.imageSmoothingEnabled = false
 	
 	displayCanvas = document.getElementById('display_canvas')
 	displayCanvas.width = 1250
@@ -115,14 +116,32 @@ function setGlobals() {
 	paletteCtx.putImageData(paletteImage, 0, 0)
 }
 
+function colourPlayers() {
+	patternCanvas = document.createElement('canvas')
+	patternCanvas.width = 2 * players.length
+	patternCanvas.height = 2
+	patternCtx = patternCanvas.getContext('2d')
+	random = seededRandomInitialiser(1)
+	for (var player=0; player<players.length; player++) {
+		var colours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+		shuffle(colours)
+		for (var square=0; square<4; square++) {
+			var x = player * 2 + square % 2
+			var y = Math.floor(square / 2)
+			var colour = colours[square]
+			patternCtx.drawImage(paletteCanvas, colour, 0, 1, 1, x, y, 1, 1)			
+		}
+	}
+}
+
 /* HELPERS */
 
 function maskedEval(functionBody, params) //thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
 {
     var mask = {}
-    for (i in this)
+    for (var i in this)
         mask[i] = undefined
-    for (i in params) {
+    for (var i in params) {
         if (params.hasOwnProperty(i))
             mask[i] = params[i]
     }
@@ -153,6 +172,15 @@ seededRandomInitialiser = function(seed) {		// thanks https://en.wikipedia.org/w
 		stateArray[0] ^= stateArray[0] >> 17
 		stateArray[0] ^= stateArray[0] << 5
 		return stateArray[0] % n
+	}
+}
+
+function shuffle(array) {
+	for (var i=0; i<array.length; i++) {
+		var target = random(array.length - i) + i
+		var temp = array[i]
+		array[i] = array[target]
+		array[target] = temp
 	}
 }
 
@@ -433,6 +461,7 @@ function paintTile(x, y, colour) {
 }
 
 function paintFood(x, y) {
+	zoomCtx.fillStyle = 'rgb(0, 0, 0)'
 	zoomCtx.beginPath()
 	zoomCtx.moveTo((x+1) * zoomCellSideLength, y * zoomCellSideLength + zoomCellSideLength/2)
 	zoomCtx.lineTo(x * zoomCellSideLength + zoomCellSideLength/2, y * zoomCellSideLength)
@@ -441,7 +470,14 @@ function paintFood(x, y) {
 	zoomCtx.fill()
 }
 
-function paintAnt(x, y, ant) {}
+function paintAnt(x, y, ant) {
+	if (ant.type === 5) {
+		var size = zoomCellSideLength * .3
+	} else {
+		var size = zoomCellSideLength * .2
+	}
+	zoomCtx.drawImage(patternCanvas, ant.player.colourIndex*2, 0, 2, 2, (x+0.5)*zoomCellSideLength - size, (y+0.5)*zoomCellSideLength - size, size*2, size*2)
+}
 
 function displayArena() {
 	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
@@ -487,6 +523,9 @@ function startNewGame() {
 	players.forEach(function(player) {
 		if (player['included']) {
 			includedPlayers.push(player)
+			if (player.id === 0) {
+				player.code = $('#new_challenger_text').val()
+			}
 		}
 	})
 	var numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
@@ -506,7 +545,7 @@ function startNewGame() {
 			if (arena[x + y*arenaWidth].ant === null && arena[x + y*arenaWidth].food === 0) {
 				var ant = {
 					player: player,
-					type: 0,
+					type: 5,
 					food: 0,
 					x: x,
 					y: y
@@ -719,7 +758,8 @@ function createPlayers(answers) {
     var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
     var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 	
-	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER' }
+	var colourIndex = 0
+	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER', colourIndex: colourIndex }
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -733,9 +773,12 @@ function createPlayers(answers) {
 			player.code = decode(codeMatch[1])
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,20) + ' - ' + user
+			colourIndex++
+			player.colourIndex = colourIndex
 			players.push(player)
 		}		
 	})
+	colourPlayers()
 	initialiseLeaderboard()
 }
 
