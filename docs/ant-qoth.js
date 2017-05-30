@@ -53,6 +53,16 @@ function setGlobals() {
 		[8, 7, 6, 5, 4, 3, 2, 1, 0],
 		[2, 5, 8, 1, 4, 7, 0, 3, 6]
 	]
+	neighbours = [
+		{x:-1, y:-1},
+		{x:0, y:-1},
+		{x:1, y:-1},
+		{x:-1, y:0},
+		{x:1, y:0},
+		{x:-1, y:1},
+		{x:0, y:1},
+		{x:1, y:1}
+	]	
 	arenaCanvas = document.createElement('canvas')
 	arenaCanvas.width = arenaWidth
 	arenaCanvas.height = arenaHeight
@@ -578,31 +588,93 @@ function processCurrentAnt() {
 		console.log('Unrotated view: ' + unrotatedView)
 		console.log('Response: ' + response)
 	}
-	var targetCell = rotator[rotation][response.cell]	
+	var targetCell = rotator[rotation][response.cell]
+	var x = (currentAnt.x + targetCell%3 - 1 + arenaWidth) % arenaWidth
+	var y = (currentAnt.y + Math.floor(targetCell/3) - 1 + arenaHeight) % arenaHeight
 	if (response.colour) {
 		if (response.workerType) {
 			console.log('Not permitted: Both colour and worker type specified.')
 		} else {
-			setColour()
+			setColour(x, y, response.colour)
 		}
 	} else {
 		if (response.workerType) {
-			makeWorker()
+			makeWorker(x, y, response.workerType, currentAnt)
 		} else {
-			moveAnt()
+			moveAnt(x, y, currentAnt)
 		}
 	}		
-	passFood()	
+	passFood(currentAnt)	
 	prepareForNextAnt()
 }
 
-function setColour() {}
+function setColour(x, y, colour) {
+	arena[x + y*arenaWidth].colour = colour
+}
 
-function makeWorker() {}
+function makeWorker(x, y, workerType, parent) {
+	var birthCell = arena[x + y*arenaWidth]
+	if (parent.type === 5) {
+		if (parent.food > 0) {
+			if (!birthCell.food) {
+				if (!birthCell.ant) {
+					var newAnt = {
+						player: parent.player,
+						type: workerType,
+						food: 0,
+						x: x,
+						y: y
+					}
+					birthCell.ant = newAnt
+				}				
+			}
+		}
+	}
+}
 
-function moveAnt() {}
+function moveAnt(x, y, currentAnt) {
+	var departureCell = arena[currentAnt.x + currentAnt.y*arenaWidth]
+	var destinationCell = arena[x + y*arenaWidth]
+	if (!destinationCell.food) {
+		if (!destinationCell.ant) {
+			destinationCell.ant = currentAnt
+			departureCell.ant = null
+			currentAnt.x = x
+			currentAnt.y = y
+		}
+	}
+}
 
-function passFood() {}
+function passFood(ant) {
+	if (ant.type === 5) {
+		for (var i=0; i<neighbours.length; i++) {
+			var x = (ant.x + neighbours[i].x + arenaWidth) % arenaWidth
+			var y = (ant.y + neighbours[i].y + arenaHeight) % arenaHeight
+			var cell = arena[x + y*arenaWidth]
+			var candidate = cell.ant
+			if (candidate && candidate.type < 5 && candidate.food) {
+				candidate.food = 0
+				ant.food++
+			}
+		}
+	} else {
+		if (ant.food) {
+			var cells = neighbours.slice()
+			shuffle(cells)
+			for (var i=0; i<cells.length; i++) {
+				var x = (ant.x + cells[i].x + arenaWidth) % arenaWidth
+				var y = (ant.y + cells[i].y + arenaHeight) % arenaHeight
+				var cell = arena[x + y*arenaWidth]
+				var candidate = cell.ant
+				if (candidate && candidate.type === 5) {
+					ant.food = 0
+					candidate.food++
+					return
+				}
+			}
+		}
+	}
+}
 
 function prepareForNextAnt() {
 	currentAntIndex = (currentAntIndex + 1) % population.length
@@ -636,8 +708,8 @@ function nineVisibleSquares(currentAnt) {
 	var view = []
 	for (var vertical=-1; vertical<=1; vertical++) {
 		for (var horizontal=-1; horizontal<=1; horizontal++) {
-			var x = (horizontal + arenaWidth) % arenaWidth
-			var y = (vertical + arenaHeight) % arenaHeight
+			var x = (currentAnt.x + horizontal + arenaWidth) % arenaWidth
+			var y = (currentAnt.y + vertical + arenaHeight) % arenaHeight
 			var arenaSquare = arena[x + y*arenaWidth]
 			var square = {}
 			square.colour = arenaSquare.colour
