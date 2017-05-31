@@ -478,7 +478,7 @@ function fillZoomCanvas() {
 			wrappedX = (x + left) % arenaWidth
 			var cell = arena[wrappedX + wrappedY*arenaWidth]
 			paintTile(x, y, cell.colour)
-			if (cell.food || (cell.ant.type < 5 && cell.ant.food)) {
+			if (cell.food || (cell.ant && cell.ant.type < 5 && cell.ant.food)) {
 				paintFood(x, y)
 			}
 			if (cell.ant) {
@@ -682,8 +682,8 @@ function moveAnt(x, y, ant) {
 		} else {			
 			destinationCell.ant = ant
 			departureCell.ant = null
-			currentAnt.x = x
-			currentAnt.y = y
+			ant.x = x
+			ant.y = y
 			if (destinationCell.food) {
 				destinationCell.food = 0
 				ant.food++
