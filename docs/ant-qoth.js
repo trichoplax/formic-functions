@@ -512,6 +512,7 @@ function paintAnt(x, y, ant) {
 }
 
 function displayArena() {
+	fillArenaCanvas()
 	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
 	if (zoomed) {
 		displayZoomedArea()
@@ -519,6 +520,7 @@ function displayArena() {
 }
 
 function displayZoomedArea() {
+	fillZoomCanvas()
 	if (zoomOnLeft) {
 		displayCtx.drawImage(zoomCanvas, 0, 0, zoomCanvas.width, zoomCanvas.height, 0, 0, displayCanvas.height, displayCanvas.height)
 	} else {
@@ -563,6 +565,7 @@ function startNewGame() {
 	}
 	var playersThisGame = includedPlayers.slice(0, numberOfPlayers)
 	gameStats = []
+	population = []
 	playersThisGame.forEach(function(player) {
 		player.time = 0
 		player.permittedTime = 0
@@ -593,11 +596,7 @@ function startNewGame() {
 		}
 		gameStats.push(row)
 	})
-	currentAntIndex = population.length
-	fillArenaCanvas()
-	if (zoomed) {
-		fillZoomCanvas()
-	}
+	currentAntIndex = population.length - 1
 	displayGameTable()
 	clearTimeout(timeoutID)
 	timeoutID = setTimeout(prepareForNextAnt, 0)
@@ -913,6 +912,31 @@ function createPlayers(answers) {
 			player.id = answer.answer_id
 			player.included = true
 			player.code = decode(codeMatch[1])
+			
+			player.code = '' +
+				'if (view[4].colour === 1) {'+
+				'	return { cell: 4, workerType: 0, colour: 5 }' +
+				'}' +
+				'for (var i=0; i<9; i++) {' +
+				'	if (view[i].food) {' +
+				'		return { cell: i, workerType: 0, colour: 0 }' +
+				'	}' +
+				'}' +
+				'if (view[0].colour === 1) {'+
+				'return { cell: 0, workerType: 0, colour: 0 }'+
+				'}'+
+				'if (view[2].colour === 1) {'+
+				'return { cell: 2, workerType: 0, colour: 0 }'+
+				'}'+
+				'if (view[6].colour === 1) {'+
+				'return { cell: 6, workerType: 0, colour: 0 }'+
+				'}'+
+				'if (view[8].colour === 1) {'+
+				'return { cell: 8, workerType: 0, colour: 0 }'+
+				'}'+
+				'return { cell: 0, workerType: 0, colour: 0 }'
+
+			
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,20) + ' - ' + user
 			colourIndex++
