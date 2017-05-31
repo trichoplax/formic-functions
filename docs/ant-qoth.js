@@ -16,6 +16,7 @@ function setGlobals() {
 	qid = 50690
 	site = 'codegolf'
 	players = []
+	gameStats = []
 	leaderboardInfo = []
 	population = []
 	delay = 150
@@ -186,11 +187,13 @@ seededRandomInitialiser = function(seed) {		// thanks https://en.wikipedia.org/w
 }
 
 function shuffle(array) {
-	for (var i=0; i<array.length; i++) {
-		var target = random(array.length - i) + i
-		var temp = array[i]
-		array[i] = array[target]
-		array[target] = temp
+	for (var t=0; t<2; t++) {	// Shuffle twice to disguise bias in the random number generator
+		for (var i=0; i<array.length; i++) {
+			var target = random(array.length - i) + i
+			var temp = array[i]
+			array[i] = array[target]
+			array[target] = temp
+		}
 	}
 }
 
@@ -381,9 +384,27 @@ function showLoadedTime() {
 	$('#loaded_at').html('<i>Players loaded from contest post</i> ' + (new Date()).toString())
 }
 
+function displayGameTable() {
+	var content = ''
+	gameStats.forEach(function(row) {
+		content += '<tr><td>' + row['title'] + '</td><td>' + row['type1'] +
+			'</td><td>' + row['type2'] + '</td><td>' + row['type3'] +
+			'</td><td>' + row['type4'] + '</td><td>' + row['food'] +
+			'</td></tr>'
+	})
+	$('#current_game_body').html(content)
+}
+
 function initialiseLeaderboard() {
 	players.forEach(function(player) {
-		var row = { id: player['id'], position: 1, name: player['title'], score: 0, confidence: 0, included: player['included'] }
+		var row = {
+			id: player['id'],
+			position: 1,
+			title: player['title'],
+			score: 0,
+			confidence: 0,
+			included: player['included']
+		}
 		leaderboardInfo.push(row)
 	})
 	displayLeaderboard()
@@ -398,7 +419,7 @@ function displayLeaderboard() {
 		content += row['position']
 		content += '</td>'
 		content += '<td>'
-		content += row['name']
+		content += row['title']
 		content += '</td>'
 		content += '<td>'
 		content += row['score']
@@ -457,9 +478,10 @@ function fillZoomCanvas() {
 			wrappedX = (x + left) % arenaWidth
 			var cell = arena[wrappedX + wrappedY*arenaWidth]
 			paintTile(x, y, cell.colour)
-			if (cell.food) {
+			if (cell.food || (cell.ant.type < 5 && cell.ant.food)) {
 				paintFood(x, y)
-			} else if (cell.ant) {
+			}
+			if (cell.ant) {
 				paintAnt(x, y, cell.ant)
 			}
 		}
@@ -514,21 +536,15 @@ function startNewGame() {
 	}
 	for (var i=0; i<arenaWidth; i++) {
 		arena[i].food = 1
+		arena[i].colour = 1
+		arena[i].ant = null
 	}
 	for (var i=arenaWidth; i<arenaArea; i++) {
 		arena[i].food = 0
+		arena[i].colour = 1
+		arena[i].ant = null
 	}
-	for (var i=0; i<2; i++) {	// Shuffle twice to disguise bias in the random number generator
-		for (var i=0; i<arenaArea; i++) {
-			var otherCell = random(arenaArea)
-			var temp = arena[i].food
-			arena[i].food = arena[otherCell].food
-			arena[otherCell].food = temp
-		
-			arena[i].colour = 1
-			arena[i].ant = null
-		}
-	}
+	shuffle(arena)
 	var includedPlayers = []
 	players.forEach(function(player) {
 		if (player['included']) {
@@ -546,6 +562,7 @@ function startNewGame() {
 		includedPlayers[r] = temp
 	}
 	var playersThisGame = includedPlayers.slice(0, numberOfPlayers)
+	gameStats = []
 	playersThisGame.forEach(function(player) {
 		player.time = 0
 		player.permittedTime = 0
@@ -565,13 +582,25 @@ function startNewGame() {
 				break
 			}
 		}
+		var row = {
+			id: player.id,
+			title: player.title,
+			type1: 0,
+			type2: 0,
+			type3: 0,
+			type4: 0,
+			food: 0
+		}
+		gameStats.push(row)
 	})
+	currentAntIndex = population.length
 	fillArenaCanvas()
 	if (zoomed) {
 		fillZoomCanvas()
 	}
+	displayGameTable()
 	clearTimeout(timeoutID)
-	timeoutID = setTimeout(processCurrentAnt, 0)
+	timeoutID = setTimeout(prepareForNextAnt, 0)
 }
 
 function processCurrentAnt() {
@@ -626,21 +655,48 @@ function makeWorker(x, y, workerType, parent) {
 						y: y
 					}
 					birthCell.ant = newAnt
+					parent.food--
+					var id = parent.player.id
+					gameStats.forEach(function(row) {
+						if (row.id === id) {
+							var type = 'type' + workerType
+							row[type]++
+							row['food']--
+						}
+					})
+					displayGameTable()
 				}				
 			}
 		}
 	}
 }
 
-function moveAnt(x, y, currentAnt) {
-	var departureCell = arena[currentAnt.x + currentAnt.y*arenaWidth]
+function moveAnt(x, y, ant) {
+	var departureCell = arena[ant.x + ant.y*arenaWidth]
 	var destinationCell = arena[x + y*arenaWidth]
-	if (!destinationCell.food) {
-		if (!destinationCell.ant) {
-			destinationCell.ant = currentAnt
+	if (!destinationCell.ant) {
+		if (destinationCell.food && ant.type < 5 && ant.food) {
+			if (debug) {
+				console.log('Error: a laden worker cannot move onto food.')
+			}
+		} else {			
+			destinationCell.ant = ant
 			departureCell.ant = null
 			currentAnt.x = x
 			currentAnt.y = y
+			if (destinationCell.food) {
+				destinationCell.food = 0
+				ant.food++
+				if (ant.type === 5) {
+					var id = ant.player.id
+					gameStats.forEach(function(row) {
+						if (row.id === id) {
+							row['food']++
+						}
+					})
+					displayGameTable()					
+				}
+			}
 		}
 	}
 }
@@ -655,6 +711,13 @@ function passFood(ant) {
 			if (candidate && candidate.type < 5 && candidate.food) {
 				candidate.food = 0
 				ant.food++
+				var id = ant.player.id
+				gameStats.forEach(function(row) {
+					if (row.id === id) {
+						row['food']++
+					}
+				})
+				displayGameTable()
 			}
 		}
 	} else {
@@ -669,6 +732,13 @@ function passFood(ant) {
 				if (candidate && candidate.type === 5) {
 					ant.food = 0
 					candidate.food++
+					var id = candidate.player.id
+					gameStats.forEach(function(row) {
+						if (row.id === id) {
+							row['food']++
+						}
+					})
+					displayGameTable()
 					return
 				}
 			}
