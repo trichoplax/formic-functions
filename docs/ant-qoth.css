@@ -28,6 +28,16 @@ th, td {
 h1, h3 {
   margin: 0.5em;
 }
+.tableImage {
+  width: 1em;
+  height: 1em;
+  image-rendering: -moz-crisp-edges;	
+  image-rendering: -o-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+  
+}
 #delay, #permitted_time_override {
   width: 5em;
 }

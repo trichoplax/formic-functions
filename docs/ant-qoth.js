@@ -142,6 +142,13 @@ function colourPlayers() {
 			var colour = colours[square]
 			patternCtx.drawImage(paletteCanvas, colour, 0, 1, 1, x, y, 1, 1)			
 		}
+		var playerCanvas = document.createElement('canvas')
+		playerCanvas.width = 2
+		playerCanvas.height = 2
+		var playerCtx = playerCanvas.getContext('2d')
+		playerCtx.drawImage(patternCanvas, player*2, 0, 2, 2, 0, 0, 2, 2)
+		var imageSource = playerCanvas.toDataURL()
+		players[player].imageTag = '<img src=\'' + imageSource + '\' class=\'tableImage\'></img>'
 	}
 }
 
@@ -387,10 +394,13 @@ function showLoadedTime() {
 function displayGameTable() {
 	var content = ''
 	gameStats.forEach(function(row) {
-		content += '<tr><td>' + row['title'] + '</td><td>' + row['type1'] +
-			'</td><td>' + row['type2'] + '</td><td>' + row['type3'] +
-			'</td><td>' + row['type4'] + '</td><td>' + row['food'] +
-			'</td></tr>'
+		content += '<tr><td>' + row['title'] +
+			'<td>' + row['imageTag'] +
+			'<td>' + row['type1'] +
+			'<td>' + row['type2'] +
+			'<td>' + row['type3'] +
+			'<td>' + row['type4'] +
+			'<td>' + row['food']			
 	})
 	$('#current_game_body').html(content)
 }
@@ -588,6 +598,7 @@ function startNewGame() {
 		var row = {
 			id: player.id,
 			title: player.title,
+			imageTag: player.imageTag,
 			type1: 0,
 			type2: 0,
 			type3: 0,
