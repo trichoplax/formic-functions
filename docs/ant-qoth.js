@@ -19,10 +19,13 @@ function setGlobals() {
 	gameStats = []
 	leaderboardInfo = []
 	population = []
-	delay = 150
+	moveCounter = 0
+	movesPerGame = 1000
+	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed')
+	delay = $('#delay').val()
 	debug = $('#debug').prop('checked')
 	currentAntIndex = 0
-	maxPlayers = 16
+	maxPlayers = $('#max_players').val()
 	display = true
 	zoomed = false
 	zoomLocked = false
@@ -35,7 +38,7 @@ function setGlobals() {
 	zoomedAreaCentreY = 0
 	zoomOnLeft = true
 	timeoutID = 0
-	permittedTime = 5
+	permittedTime = $('#permitted_time_override').val()
 	noMove = {cell: 4, colour: 0, workerType: 0}
 	arenaWidth = 2500
 	arenaHeight = 1000
@@ -343,28 +346,13 @@ function initialiseInterface() {
 		$('#reset_leaderboard').show(300)
 	})
 	$('#abandon_game').prop('disabled', true)
-	$('#abandon_game').click(function() {
-		if (ongoingTournament) {
-			startNewGame()
-		} else {
-			$('#completed_moves_area').html('0 moves of 10000 completed')
-			$('#current_game_body').html('')
-			$('#run_single_game').prop('disabled', false)
-			$('#no_display').prop('disabled', true)
-			$('#play').prop('disabled', true)
-			$('#pause').prop('disabled', true)
-			$('#step').prop('disabled', true)
-			$('#step_ant').prop('disabled', true)
-			$('#abandon_game').prop('disabled', true)
-		}		
-	})
+	$('#abandon_game').click(abandonGame)
 	$('#reset_leaderboard').prop('disabled', true)
 	$('#reset_leaderboard').click(function() {
 		$('#reset_leaderboard').prop('disabled', true)
 		leaderboardInfo = []
 		initialiseLeaderboard()
 	})
-	$('#permitted_time_override').val(permittedTime)
 	$('#permitted_time_override').change(function() {
 		permittedTime = $('#permitted_time_override').val()
 	})
@@ -452,6 +440,7 @@ function displayLeaderboard() {
 		})]
 		$(checkboxId).change(function() {
 			player['included'] = $(checkboxId).prop('checked')
+			row['included'] = $(checkboxId).prop('checked')
 		})
 	})	
 }
@@ -541,11 +530,13 @@ function displayZoomedArea() {
 /* GAMEPLAY */
 
 function startNewGame() {
+	gameInProgress = true
 	if ($('#seeded_random').prop('checked')) {
 		random = seededRandomInitialiser($('#seed').val())
 	} else {
 		random = cryptoRandom
 	}
+	moveCounter = -1
 	for (var i=0; i<arenaWidth; i++) {
 		arena[i].food = 1
 		arena[i].colour = 1
@@ -568,7 +559,7 @@ function startNewGame() {
 	})
 	var numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
 	for (i=0; i<numberOfPlayers; i++) {
-		var r = random(numberOfPlayers)
+		var r = random(includedPlayers.length)
 		var temp = includedPlayers[i]
 		includedPlayers[i] = includedPlayers[r]
 		includedPlayers[r] = temp
@@ -613,6 +604,23 @@ function startNewGame() {
 	timeoutID = setTimeout(prepareForNextAnt, 0)
 }
 
+function abandonGame() {
+	gameInProgress = false
+	clearTimeout(timeoutID)
+	if (ongoingTournament) {
+		startNewGame()
+	} else {
+		$('#run_single_game').html('<h2>Run single game</h2>')
+		$('#run_single_game').prop('disabled', false)
+		$('#no_display').prop('disabled', true)
+		$('#play').prop('disabled', true)
+		$('#pause').prop('disabled', true)
+		$('#step').prop('disabled', true)
+		$('#step_ant').prop('disabled', true)
+		$('#abandon_game').prop('disabled', true)
+	}		
+}
+	
 function processCurrentAnt() {
 	var currentAnt = population[currentAntIndex]	
 	var unrotatedView = nineVisibleSquares(currentAnt)	
@@ -701,7 +709,7 @@ function moveAnt(x, y, ant) {
 					var id = ant.player.id
 					gameStats.forEach(function(row) {
 						if (row.id === id) {
-							row['food']++
+							row.food++
 						}
 					})
 					displayGameTable()					
@@ -782,6 +790,51 @@ function prepareForNextAnt() {
 			}
 		}
 	}
+	if (currentAntIndex === 0) {
+		incrementMoveCounter()
+	}
+}
+
+function incrementMoveCounter() {
+	moveCounter++
+	$('#completed_moves_area').html(moveCounter + ' moves of ' + movesPerGame + ' completed')
+	if (moveCounter >= movesPerGame) {
+		gameOver()
+	}
+}
+
+function gameOver() {
+	gameStats.forEach(function(row) {
+		var id = row.id
+		var score = playersWithLessFood(id)
+		addScoreToLeaderboard(id, score)
+	})
+	displayLeaderboard()
+	abandonGame()
+}
+
+function playersWithLessFood(id) {
+	var count = 0
+	var playerFood = 0
+	gameStats.forEach(function(row) {
+		if (row.id === id) {
+			playerFood = row.food
+		}
+	})
+	gameStats.forEach(function(row) {
+		if (row.food < playerFood) {
+			count++
+		}
+	})
+	return count
+}
+
+function addScoreToLeaderboard(id, score) {
+	leaderboardInfo.forEach(function(row) {
+		if (row.id === id) {
+			row.score += score
+		}
+	})
 }
 
 function nineVisibleSquares(currentAnt) {

@@ -14,14 +14,14 @@
     
     <div>
       <div id='no_display_area'><button id='no_display'>No display</button></div>
-      <div id='delay_area'>Delay <input id='delay' type='number' min='0' max='999'>ms</div>
+      <div id='delay_area'>Delay <input id='delay' type='number' min='0' max='999' value='150'>ms</div>
       <div id='controls_area'>
         <button id='play'>Play</button>
         <button id='pause'>Pause</button>
         <button id='step'>Step (S)</button>
         <button id='step_ant'>Step ant (A)</button>
       </div>
-      <div id='max_area'>Max <input id='max_players' type='number' min='0' max='99'></input> players</div>
+      <div id='max_area'>Max <input id='max_players' type='number' min='1' max='99' value='16'></input> players</div>
       <div id='fit_area'><button id='fit_canvas'>Fit canvas to width</button></div>
     </div>
     
@@ -32,7 +32,7 @@
 
 	<div>
 	  <div id='abandon_game_area'><button id='abandon_game'>Abandon current game</button></div>
-    <div id='completed_moves_area'>0 moves of 10000 completed</div>
+    <div id='completed_moves_area'>Number of moves not yet available</div>
 	  <div id='reset_leaderboard_area'><button id='reset_leaderboard'>Reset tournament leaderboard</button></div>
   </div>
 	
