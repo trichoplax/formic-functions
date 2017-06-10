@@ -20,7 +20,7 @@ function setGlobals() {
 	leaderboardInfo = []
 	population = []
 	moveCounter = 0
-	movesPerGame = 1000
+	movesPerGame = 10000
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed')
 	delay = $('#delay').val()
 	debug = $('#debug').prop('checked')
@@ -238,7 +238,6 @@ function initialiseInterface() {
 		$('#step').prop('disabled', false)
 		$('#step_ant').prop('disabled', false)
 		$('#abandon_game').prop('disabled', false)
-		$('#reset_leaderboard').prop('disabled', false)
 		if (!gameInProgress) {
 			startNewGame()
 		}		
@@ -260,7 +259,6 @@ function initialiseInterface() {
 		$('#step').prop('disabled', false)
 		$('#step_ant').prop('disabled', false)
 		$('#abandon_game').prop('disabled', false)
-		$('#reset_leaderboard').prop('disabled', false)
 		if (!gameInProgress) {
 			startNewGame()
 		}
@@ -344,6 +342,7 @@ function initialiseInterface() {
 		$('#bottom_hidden_area').show(300)
 		$('#abandon_game').show(300)
 		$('#reset_leaderboard').show(300)
+		display = true
 	})
 	$('#abandon_game').prop('disabled', true)
 	$('#abandon_game').click(abandonGame)
@@ -472,9 +471,9 @@ function fillZoomCanvas() {
 	var left = Math.floor((zoomedAreaCentreX - zoomCellsPerSide/2 + arenaWidth) % arenaWidth)
 	var top = Math.floor((zoomedAreaCentreY - zoomCellsPerSide/2 + arenaHeight) % arenaHeight)
 	for (var y=0; y<zoomCellsPerSide; y++) {
-		wrappedY = (y + top) % arenaHeight
+		var wrappedY = (y + top) % arenaHeight
 		for (var x=0; x<zoomCellsPerSide; x++) {
-			wrappedX = (x + left) % arenaWidth
+			var wrappedX = (x + left) % arenaWidth
 			var cell = arena[wrappedX + wrappedY*arenaWidth]
 			paintTile(x, y, cell.colour)
 			if (cell.food || (cell.ant && cell.ant.type < 5 && cell.ant.food)) {
@@ -622,7 +621,6 @@ function abandonGame() {
 }
 	
 function processCurrentAnt() {
-	console.log('currentAntIndex: ' + currentAntIndex)
 	var currentAnt = population[currentAntIndex]	
 	var unrotatedView = nineVisibleSquares(currentAnt)	
 	var rotation = random(4)
@@ -792,6 +790,8 @@ function prepareForNextAnt() {
 				}
 			}
 		}
+	} else {
+		timeoutID = setTimeout(processCurrentAnt, 0)
 	}
 	if (currentAntIndex === 0) {
 		incrementMoveCounter()
@@ -812,6 +812,7 @@ function gameOver() {
 		var score = playersWithLessFood(id)
 		addScoreToLeaderboard(id, score)
 	})
+	$('#reset_leaderboard').prop('disabled', false)
 	displayLeaderboard()
 	abandonGame()
 }
