@@ -622,6 +622,7 @@ function abandonGame() {
 }
 	
 function processCurrentAnt() {
+	console.log('currentAntIndex: ' + currentAntIndex)
 	var currentAnt = population[currentAntIndex]	
 	var unrotatedView = nineVisibleSquares(currentAnt)	
 	var rotation = random(4)
@@ -673,6 +674,8 @@ function makeWorker(x, y, workerType, parent) {
 						y: y
 					}
 					birthCell.ant = newAnt
+					population.splice(currentAntIndex, 0, newAnt)
+					currentAntIndex++
 					parent.food--
 					var id = parent.player.id
 					gameStats.forEach(function(row) {
@@ -849,22 +852,13 @@ function nineVisibleSquares(currentAnt) {
 			square.food = arenaSquare.food
 			var ant = arenaSquare.ant
 			if (ant) {
-				if (ant.player = currentAnt.player) {
-					square.friend = {
-						food: ant.food,
-						type: ant.type
-					}
-					square.enemy = null
-				} else {
-					square.friend = null
-					square.enemy = {
-						food: ant.food,
-						type: Math.sign(ant.type)
-					}
+				square.ant = {
+					food: ant.food,
+					type: ant.type,
+					friend: ant.player === currentAnt.player
 				}
 			} else {
-				square.friend = null
-				square.enemy = null
+				square.ant = null
 			}
 			view.push(square)
 		}
