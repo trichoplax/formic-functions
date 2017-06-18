@@ -472,8 +472,9 @@ function fillArenaCanvas() {
 }
 
 function fillZoomCanvas() {
-	var left = Math.floor((zoomedAreaCentreX - zoomCellsPerSide/2 + arenaWidth) % arenaWidth)
-	var top = Math.floor((zoomedAreaCentreY - zoomCellsPerSide/2 + arenaHeight) % arenaHeight)
+	var offset = Math.floor(zoomCellsPerSide / 2)
+	var left = (zoomedAreaCentreX - offset + arenaWidth) % arenaWidth
+	var top = (zoomedAreaCentreY - offset + arenaHeight) % arenaHeight
 	for (var y=0; y<zoomCellsPerSide; y++) {
 		var wrappedY = (y + top) % arenaHeight
 		for (var x=0; x<zoomCellsPerSide; x++) {
@@ -654,7 +655,7 @@ function prepareForNextBatch() {
 			}
 		} else {
 			if (singleAntStep) {
-				if (zoomed && atLeastOneVisibleAnt() && !visible(currentAntIndex)) {
+				if (zoomed && atLeastOneVisibleAnt() && !visible(population[currentAntIndex])) {
 					timeoutID = setTimeout(processAnts, 0)
 				} else {
 					displayArena()
@@ -912,7 +913,7 @@ function disqualifyPlayer(message) {
 	
 }
 
-function step() {
+function step() {	// Step all ants up to the last one in the population.
 	continuousMoves = false
 	singleAntStep = false
 	$('#play').prop('disabled', false)
@@ -921,7 +922,7 @@ function step() {
 	processAnts()		
 }
 
-function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if display not hidden)
+function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if display not hidden).
 	continuousMoves = false
 	singleAntStep = true
 	$('#play').prop('disabled', false)
@@ -930,8 +931,16 @@ function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if d
 	processAnts()
 }
 
-function visible(ant) {
-	// TODO return true if the ant is within the zoomed area, including the first layer of out of range cells since they still affect the area 
+function visible(ant) {	// Return true if the ant is within the zoomed area.
+	var offset = Math.floor(zoomCellsPerSide / 2)
+	var littleOffset = zoomCellsPerSide - offset
+	var x = ant.x, y = ant.y
+	var cx = zoomedAreaCentreX, cy = zoomedAreaCentreY
+	if (((cx - x <= offset) && (x - cx <= littleOffset) || (cx + arenaWidth - x <= offset) && (x + arenaWidth - cx <= littleOffset)) && 
+		((cy - y <= offset) && (y - cy <= littleOffset) || (cy + arenaHeight - y <= offset) && (y + arenaHeight - cy <= littleOffset))) {
+		return true
+	}
+	return false
 }
 
 function atLeastOneVisibleAnt() {
