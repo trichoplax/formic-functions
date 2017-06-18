@@ -27,6 +27,8 @@ function setGlobals() {
 	currentAntIndex = 0
 	maxPlayers = $('#max_players').val()
 	display = true
+	bigBatchSize = 100
+	batchSize = 1
 	zoomed = false
 	zoomLocked = false
 	continuousMoves = true
@@ -272,6 +274,7 @@ function initialiseInterface() {
 		$('#restore_display').show(300)
 		display = false
 		continuousMoves = true
+		batchSize = bigBatchSize
 	})
 	$('#delay').val(delay)
 	$('#delay').change(function() {
@@ -283,7 +286,7 @@ function initialiseInterface() {
 		$('#play').prop('disabled', true)
 		$('#pause').prop('disabled', false)
 		clearTimeout(timeoutID)
-		processCurrentAnt()			
+		processAnts()			
 	})
 	$('#pause').prop('disabled', true)
 	$('#pause').click(function() {
@@ -343,6 +346,7 @@ function initialiseInterface() {
 		$('#abandon_game').show(300)
 		$('#reset_leaderboard').show(300)
 		display = true
+		batchSize = 1
 	})
 	$('#abandon_game').prop('disabled', true)
 	$('#abandon_game').click(abandonGame)
@@ -445,23 +449,23 @@ function displayLeaderboard() {
 }
 
 function fillArenaCanvas() {
+	var x, y, cell, i
 	for (y=0; y<arenaHeight; y++) {
 		for (x=0; x<arenaWidth; x++) {
-			var cell = arena[x + y*arenaWidth]
+			cell = arena[x + y*arenaWidth]
 			if (cell.food) {
-				for (var i=0; i<3; i++) {
+				for (i=0; i<3; i++) {
 					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.food[i]
 				}
 			} else if (cell.ant) {
-				for (var i=0; i<3; i++) {
+				for (i=0; i<3; i++) {
 					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.ant[i]
 				}			
 			} else {
-				for (var i=0; i<3; i++) {
+				for (i=0; i<3; i++) {
 					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.tile[cell.colour][i]
 				}			
 			}
-			arenaImage.data[(x + y*arenaWidth) * 4]
 		}
 	}
 	arenaCtx.putImageData(arenaImage, 0, 0)
@@ -535,7 +539,7 @@ function startNewGame() {
 	} else {
 		random = cryptoRandom
 	}
-	moveCounter = -1
+	moveCounter = 0
 	for (var i=0; i<arenaWidth; i++) {
 		arena[i].food = 1
 		arena[i].colour = 1
@@ -597,10 +601,10 @@ function startNewGame() {
 		}
 		gameStats.push(row)
 	})
-	currentAntIndex = population.length - 1
+	currentAntIndex = 0
 	displayGameTable()
 	clearTimeout(timeoutID)
-	timeoutID = setTimeout(prepareForNextAnt, 0)
+	timeoutID = setTimeout(prepareForNextBatch, 0)
 }
 
 function abandonGame() {
@@ -619,7 +623,55 @@ function abandonGame() {
 		$('#abandon_game').prop('disabled', true)
 	}		
 }
-	
+
+function processAnts() {
+	for (var t=0; t<batchSize; t++) {
+		processCurrentAnt()
+		currentAntIndex = (currentAntIndex + 1) % population.length
+		if (currentAntIndex === 0) {
+			moveCounter++
+		}
+		if (moveCounter >= movesPerGame) {
+			break
+		}
+	}
+	$('#completed_moves_area').html(moveCounter + ' moves of ' + movesPerGame + ' completed')
+	if (moveCounter >= movesPerGame) {
+		gameOver()
+	} else {
+		prepareForNextBatch()
+	}
+}
+
+function prepareForNextBatch() {	
+	if (display) {
+		if (continuousMoves) {
+			if (currentAntIndex === 0) {
+				timeoutID = setTimeout(processAnts, delay)
+				displayArena()
+			} else {
+				timeoutID = setTimeout(processAnts, 0)
+			}
+		} else {
+			if (singleAntStep) {
+				if (zoomed && atLeastOneVisibleAnt() && !visible(currentAntIndex)) {
+					timeoutID = setTimeout(processAnts, 0)
+				} else {
+					displayArena()
+				}
+			} else {
+				if (currentAntIndex !== 0) {
+					timeoutID = setTimeout(processAnts, 0)
+				} else {
+					displayArena()
+				}
+			}
+		}
+	} else {
+		timeoutID = setTimeout(processAnts, 0)
+	}
+}
+
 function processCurrentAnt() {
 	var currentAnt = population[currentAntIndex]	
 	var unrotatedView = nineVisibleSquares(currentAnt)	
@@ -650,8 +702,7 @@ function processCurrentAnt() {
 			moveAnt(x, y, currentAnt)
 		}
 	}		
-	passFood(currentAnt)	
-	prepareForNextAnt()
+	passFood(currentAnt)
 }
 
 function setColour(x, y, colour) {
@@ -765,47 +816,6 @@ function passFood(ant) {
 	}
 }
 
-function prepareForNextAnt() {
-	currentAntIndex = (currentAntIndex + 1) % population.length
-	if (display) {
-		if (continuousMoves) {
-			if (currentAntIndex === 0) {
-				timeoutID = setTimeout(processCurrentAnt, delay)
-				displayArena()
-			} else {
-				timeoutID = setTimeout(processCurrentAnt, 0)
-			}
-		} else {
-			if (singleAntStep) {
-				if (zoomed && !visible(currentAntIndex)) {
-					timeoutID = setTimeout(processCurrentAnt, 0)
-				} else {
-					displayArena()
-				}
-			} else {
-				if (currentAntIndex !== 0) {
-					timeoutID = setTimeout(processCurrentAnt, 0)
-				} else {
-					displayArena()
-				}
-			}
-		}
-	} else {
-		timeoutID = setTimeout(processCurrentAnt, 0)
-	}
-	if (currentAntIndex === 0) {
-		incrementMoveCounter()
-	}
-}
-
-function incrementMoveCounter() {
-	moveCounter++
-	$('#completed_moves_area').html(moveCounter + ' moves of ' + movesPerGame + ' completed')
-	if (moveCounter >= movesPerGame) {
-		gameOver()
-	}
-}
-
 function gameOver() {
 	gameStats.forEach(function(row) {
 		var id = row.id
@@ -908,7 +918,7 @@ function step() {
 	$('#play').prop('disabled', false)
 	$('#pause').prop('disabled', true)
 	clearTimeout(timeoutID)
-	processCurrentAnt()		
+	processAnts()		
 }
 
 function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if display not hidden)
@@ -917,11 +927,20 @@ function stepAnt() {	// Step next visible ant, or next ant if no zoom (only if d
 	$('#play').prop('disabled', false)
 	$('#pause').prop('disabled', true)
 	clearTimeout(timeoutID)
-	processCurrentAnt()
+	processAnts()
 }
 
 function visible(ant) {
-	// return true if the ant is within the zoomed area, including the first layer of out of range cells since they still affect the area 
+	// TODO return true if the ant is within the zoomed area, including the first layer of out of range cells since they still affect the area 
+}
+
+function atLeastOneVisibleAnt() {
+	for (var i=0; i<population.length; i++) {
+		if (visible(population[i])) {
+			return true
+		}
+	}
+	return false
 }
 
 /* PLAYER LOADING */
