@@ -23,6 +23,7 @@ function setGlobals() {
 	movesPerGame = 10000
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed')
 	delay = $('#delay').val()
+	processingStartTime = 0
 	debug = $('#debug').prop('checked')
 	currentAntIndex = 0
 	maxPlayers = $('#max_players').val()
@@ -605,6 +606,7 @@ function startNewGame() {
 	currentAntIndex = 0
 	displayGameTable()
 	clearTimeout(timeoutID)
+	processingStartTime = performance.now()
 	timeoutID = setTimeout(prepareForNextBatch, 0)
 }
 
@@ -626,6 +628,7 @@ function abandonGame() {
 }
 
 function processAnts() {
+	processingStartTime = performance.now()
 	for (var t=0; t<batchSize; t++) {
 		processCurrentAnt()
 		currentAntIndex = (currentAntIndex + 1) % population.length
@@ -648,7 +651,9 @@ function prepareForNextBatch() {
 	if (display) {
 		if (continuousMoves) {
 			if (currentAntIndex === 0) {
-				timeoutID = setTimeout(processAnts, delay)
+				var adjustment = performance.now() - processingStartTime
+				var adjustedDelay = Math.max(delay - adjustment, 0)
+				timeoutID = setTimeout(processAnts, adjustedDelay)
 				displayArena()
 			} else {
 				timeoutID = setTimeout(processAnts, 0)
