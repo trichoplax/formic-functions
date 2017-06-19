@@ -21,7 +21,7 @@ function setGlobals() {
 	population = []
 	moveCounter = 0
 	movesPerGame = 10000
-	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed')
+	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
 	delay = $('#delay').val()
 	processingStartTime = 0
 	debug = $('#debug').prop('checked')
@@ -35,6 +35,7 @@ function setGlobals() {
 	continuousMoves = true
 	singleAntStep = false
 	gameInProgress = false
+	gamesPlayed = 0
 	ongoingTournament = false
 	currentGameInfo = []
 	zoomedAreaCentreX = 0
@@ -398,6 +399,8 @@ function displayGameTable() {
 }
 
 function initialiseLeaderboard() {
+	gamesPlayed = 0
+	$('#game_counter').html('0 games played.')
 	players.forEach(function(player) {
 		var row = {
 			id: player['id'],
@@ -639,7 +642,11 @@ function processAnts() {
 			break
 		}
 	}
-	$('#completed_moves_area').html(moveCounter + ' moves of ' + movesPerGame + ' completed')
+	if (moveCounter === 1) {
+		$('#completed_moves_area').html('1 move of ' + movesPerGame + ' completed.')
+	} else {
+		$('#completed_moves_area').html(moveCounter + ' moves of ' + movesPerGame + ' completed.')
+	}
 	if (moveCounter >= movesPerGame) {
 		gameOver()
 	} else {
@@ -830,6 +837,12 @@ function gameOver() {
 	})
 	$('#reset_leaderboard').prop('disabled', false)
 	displayLeaderboard()
+	gamesPlayed++
+	if (gamesPlayed === 1) {
+		$('#game_counter').html('1 game played.')
+	} else {
+		$('#game_counter').html(gamesPlayed + ' games played.')
+	}
 	abandonGame()
 }
 
