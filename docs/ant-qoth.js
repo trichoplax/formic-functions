@@ -43,7 +43,7 @@ function setGlobals() {
 	zoomOnLeft = true
 	timeoutID = 0
 	permittedTime = $('#permitted_time_override').val()
-	noMove = {cell: 4, colour: 0, workerType: 0}
+	noMove = {cell: 4, color: 0, workerType: 0}
 	arenaWidth = 2500
 	arenaHeight = 1000
 	arenaArea = arenaWidth * arenaHeight
@@ -51,7 +51,7 @@ function setGlobals() {
 	for (var i=0; i<arenaArea; i++) {
 		arena[i] = {
 			food: 0,
-			colour: 1,
+			color: 1,
 			ant: null
 		}
 	}
@@ -97,10 +97,10 @@ function setGlobals() {
 	displayCanvas.height = 500
 	displayCtx = displayCanvas.getContext('2d')
 	
-	arenaColour = {}
-	arenaColour.food = [0, 0, 0]
-	arenaColour.ant = [255, 0, 0]
-	arenaColour.tile = [
+	arenaColor = {}
+	arenaColor.food = [0, 0, 0]
+	arenaColor.ant = [255, 0, 0]
+	arenaColor.tile = [
 		null,
 		[255, 255, 255],
 		[255, 255, 0],
@@ -127,27 +127,27 @@ function setGlobals() {
 	paletteImage = paletteCtx.createImageData(paletteCanvas.width, paletteCanvas.height)
 	for (var i=1; i<paletteCanvas.width; i++) {
 		for (var c=0; c<3; c++) {
-			paletteImage.data[i*4 + c] = arenaColour.tile[i][c]
+			paletteImage.data[i*4 + c] = arenaColor.tile[i][c]
 		}
 		paletteImage.data[i*4 + 3] = 255
 	}
 	paletteCtx.putImageData(paletteImage, 0, 0)
 }
 
-function colourPlayers() {
+function colorPlayers() {
 	patternCanvas = document.createElement('canvas')
 	patternCanvas.width = 2 * players.length
 	patternCanvas.height = 2
 	patternCtx = patternCanvas.getContext('2d')
 	random = seededRandomInitialiser(1)
 	for (var player=0; player<players.length; player++) {
-		var colours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-		shuffle(colours)
+		var colors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+		shuffle(colors)
 		for (var square=0; square<4; square++) {
 			var x = player * 2 + square % 2
 			var y = Math.floor(square / 2)
-			var colour = colours[square]
-			patternCtx.drawImage(paletteCanvas, colour, 0, 1, 1, x, y, 1, 1)			
+			var color = colors[square]
+			patternCtx.drawImage(paletteCanvas, color, 0, 1, 1, x, y, 1, 1)			
 		}
 		var playerCanvas = document.createElement('canvas')
 		playerCanvas.width = 2
@@ -459,15 +459,15 @@ function fillArenaCanvas() {
 			cell = arena[x + y*arenaWidth]
 			if (cell.food) {
 				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.food[i]
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColor.food[i]
 				}
 			} else if (cell.ant) {
 				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.ant[i]
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColor.ant[i]
 				}			
 			} else {
 				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColour.tile[cell.colour][i]
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColor.tile[cell.color][i]
 				}			
 			}
 		}
@@ -484,7 +484,7 @@ function fillZoomCanvas() {
 		for (var x=0; x<zoomCellsPerSide; x++) {
 			var wrappedX = (x + left) % arenaWidth
 			var cell = arena[wrappedX + wrappedY*arenaWidth]
-			paintTile(x, y, cell.colour)
+			paintTile(x, y, cell.color)
 			if (cell.food || (cell.ant && cell.ant.type < 5 && cell.ant.food)) {
 				paintFood(x, y)
 			}
@@ -495,8 +495,8 @@ function fillZoomCanvas() {
 	}
 }
 
-function paintTile(x, y, colour) {
-	zoomCtx.drawImage(paletteCanvas, colour, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
+function paintTile(x, y, color) {
+	zoomCtx.drawImage(paletteCanvas, color, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
 }
 
 function paintFood(x, y) {
@@ -515,7 +515,7 @@ function paintAnt(x, y, ant) {
 	} else {
 		var size = zoomCellSideLength * .2
 	}
-	zoomCtx.drawImage(patternCanvas, ant.player.colourIndex*2, 0, 2, 2, (x+0.5)*zoomCellSideLength - size, (y+0.5)*zoomCellSideLength - size, size*2, size*2)
+	zoomCtx.drawImage(patternCanvas, ant.player.colorIndex*2, 0, 2, 2, (x+0.5)*zoomCellSideLength - size, (y+0.5)*zoomCellSideLength - size, size*2, size*2)
 }
 
 function displayArena() {
@@ -547,12 +547,12 @@ function startNewGame() {
 	moveCounter = 0
 	for (var i=0; i<arenaWidth; i++) {
 		arena[i].food = 1
-		arena[i].colour = 1
+		arena[i].color = 1
 		arena[i].ant = null
 	}
 	for (var i=arenaWidth; i<arenaArea; i++) {
 		arena[i].food = 0
-		arena[i].colour = 1
+		arena[i].color = 1
 		arena[i].ant = null
 	}
 	shuffle(arena)
@@ -700,11 +700,11 @@ function processCurrentAnt() {
 	var targetCell = rotator[rotation][response.cell]
 	var x = (currentAnt.x + targetCell%3 - 1 + arenaWidth) % arenaWidth
 	var y = (currentAnt.y + Math.floor(targetCell/3) - 1 + arenaHeight) % arenaHeight
-	if (response.colour) {
+	if (response.color) {
 		if (response.workerType) {
-			console.log('Not permitted: Both colour and worker type specified.')
+			console.log('Not permitted: Both color and worker type specified.')
 		} else {
-			setColour(x, y, response.colour)
+			setColor(x, y, response.color)
 		}
 	} else {
 		if (response.workerType) {
@@ -733,8 +733,8 @@ function displayMoveInfo(ant, rotatedView, response) {
 	console.log('  Response: ' + JSON.stringify(response))
 }
 
-function setColour(x, y, colour) {
-	arena[x + y*arenaWidth].colour = colour
+function setColor(x, y, color) {
+	arena[x + y*arenaWidth].color = color
 }
 
 function makeWorker(x, y, workerType, parent) {
@@ -893,7 +893,7 @@ function nineVisibleSquares(currentAnt) {
 			var y = (currentAnt.y + vertical + arenaHeight) % arenaHeight
 			var arenaSquare = arena[x + y*arenaWidth]
 			var square = {}
-			square.colour = arenaSquare.colour
+			square.color = arenaSquare.color
 			square.food = arenaSquare.food
 			var ant = arenaSquare.ant
 			if (ant) {
@@ -1019,8 +1019,8 @@ function createPlayers(answers) {
     var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
     var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 	
-	var colourIndex = 0
-	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER', colourIndex: colourIndex }
+	var colorIndex = 0
+	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER', colorIndex: colorIndex }
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -1034,37 +1034,37 @@ function createPlayers(answers) {
 			player.code = decode(codeMatch[1])
 			
 			player.code = '' +
-				'if (view[4].colour === 1) {'+
-				'	return { cell: 4, workerType: 0, colour: 5 }' +
+				'if (view[4].color === 1) {'+
+				'	return { cell: 4, workerType: 0, color: 5 }' +
 				'}' +
 				'for (var i=0; i<9; i++) {' +
 				'	if (view[i].food) {' +
-				'		return { cell: i, workerType: 0, colour: 0 }' +
+				'		return { cell: i, workerType: 0, color: 0 }' +
 				'	}' +
 				'}' +
-				'if (view[0].colour === 1) {'+
-				'return { cell: 0, workerType: 0, colour: 0 }'+
+				'if (view[0].color === 1) {'+
+				'return { cell: 0, workerType: 0, color: 0 }'+
 				'}'+
-				'if (view[2].colour === 1) {'+
-				'return { cell: 2, workerType: 0, colour: 0 }'+
+				'if (view[2].color === 1) {'+
+				'return { cell: 2, workerType: 0, color: 0 }'+
 				'}'+
-				'if (view[6].colour === 1) {'+
-				'return { cell: 6, workerType: 0, colour: 0 }'+
+				'if (view[6].color === 1) {'+
+				'return { cell: 6, workerType: 0, color: 0 }'+
 				'}'+
-				'if (view[8].colour === 1) {'+
-				'return { cell: 8, workerType: 0, colour: 0 }'+
+				'if (view[8].color === 1) {'+
+				'return { cell: 8, workerType: 0, color: 0 }'+
 				'}'+
-				'return { cell: 0, workerType: 0, colour: 0 }'
+				'return { cell: 0, workerType: 0, color: 0 }'
 
 			
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,20) + ' - ' + user
-			colourIndex++
-			player.colourIndex = colourIndex
+			colorIndex++
+			player.colorIndex = colorIndex
 			players.push(player)
 		}		
 	})
-	colourPlayers()
+	colorPlayers()
 	initialiseLeaderboard()
 }
 
