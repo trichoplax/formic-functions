@@ -320,8 +320,8 @@ function initialiseInterface() {
 	$('#display_canvas').mousemove(function(event) {
 		if (!zoomLocked) {
 			zoomed = true
-			zoomedAreaCentreX = event.offsetX * arenaWidth / displayCanvas.width
-			zoomedAreaCentreY = event.offsetY * arenaHeight / displayCanvas.height
+			zoomedAreaCentreX = Math.floor(event.offsetX * arenaWidth / displayCanvas.width)
+			zoomedAreaCentreY = Math.floor(event.offsetY * arenaHeight / displayCanvas.height)
 			if (zoomedAreaCentreX < (arenaWidth + 2*arenaHeight) / 4) {
 				zoomOnLeft = false
 			} else if (zoomedAreaCentreX > (3*arenaWidth - 2*arenaHeight) / 4) {
