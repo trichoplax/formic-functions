@@ -694,10 +694,8 @@ function processCurrentAnt() {
 		rotatedView.push(unrotatedView[rotator[rotation][i]])
 	}
 	var response = getMove(currentAnt, rotatedView)
-	if (debug) {
-		console.log('Rotated view: ' + rotatedView)
-		console.log('Unrotated view: ' + unrotatedView)
-		console.log('Response: ' + response)
+	if (debug && currentAnt.player.id === 0) {
+		displayMoveInfo(currentAnt, rotatedView, response)
 	}
 	var targetCell = rotator[rotation][response.cell]
 	var x = (currentAnt.x + targetCell%3 - 1 + arenaWidth) % arenaWidth
@@ -716,6 +714,23 @@ function processCurrentAnt() {
 		}
 	}		
 	passFood(currentAnt)
+}
+
+function displayMoveInfo(ant, rotatedView, response) {
+	var identity, carrying
+	identity = ['', 'Worker type 1', 'Worker type 2', 'Worker type 3', 'Worker type 4', 'Queen'][ant.type]
+	if (ant.type === 5) {
+		carrying = ''
+	} else {
+		if (ant.food) {
+			carrying = 'Laden '
+		} else {
+			carrying = 'Unladen '
+		}
+	}
+	console.log(carrying + identity + ': location (' + ant.x + ', ' + ant.y + '):')
+	console.log('  Received: ' + JSON.stringify(rotatedView))
+	console.log('  Response: ' + JSON.stringify(response))
 }
 
 function setColour(x, y, colour) {
