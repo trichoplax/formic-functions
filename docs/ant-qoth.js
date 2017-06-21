@@ -845,11 +845,14 @@ function passFood(ant) {
 }
 
 function gameOver() {
+	var id, score
 	gameStats.forEach(function(row) {
-		var id = row.id
-		var score = playersWithLessFood(id)
+		id = row.id
+		score = playersWithLessFood(id)
 		addScoreToLeaderboard(id, score)
 	})
+	updateLeaderboardPositions()
+	sortLeaderboard()
 	$('#reset_leaderboard').prop('disabled', false)
 	displayLeaderboard()
 	gamesPlayed++
@@ -859,6 +862,45 @@ function gameOver() {
 		$('#game_counter').html(gamesPlayed + ' games played.')
 	}
 	abandonGame()
+}
+
+function sortLeaderboard() {	//	Sort by position, then by confidence if position equal, then by age if those equal
+	leaderboardInfo.sort(function(a, b) {
+		if (a.position > b.position) {
+			return 1
+		}
+		if (a.position < b.position) {
+			return -1
+		}
+		if (a.confidence > b.confidence) {
+			return -1
+		}
+		if (a.confidence < b.confidence) {
+			return 1
+		}
+		if (a.id > b.id) {
+			return 1
+		}
+		if (a.id < b.id) {
+			return -1
+		}
+	})
+}
+
+function updateLeaderboardPositions() {
+	leaderboardInfo.forEach(function(row) {
+		row.position = playersWithHigherScore(row.id, row.score) + 1		
+	})
+}
+
+function playersWithHigherScore(id, score) {
+	var count = 0
+	leaderboardInfo.forEach(function(row) {
+		if (row.score > score) {
+			count++
+		}
+	})
+	return count
 }
 
 function playersWithLessFood(id) {
