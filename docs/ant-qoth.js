@@ -22,11 +22,11 @@ function setGlobals() {
 	moveCounter = 0
 	movesPerGame = 10000
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
-	delay = $('#delay').val()
+	delay = parseInt($('#delay').val(), 10)
 	processingStartTime = 0
 	debug = $('#debug').prop('checked')
 	currentAntIndex = 0
-	maxPlayers = $('#max_players').val()
+	maxPlayers = parseInt($('#max_players').val(), 10)
 	display = true
 	bigBatchSize = 100
 	batchSize = 1
@@ -42,7 +42,7 @@ function setGlobals() {
 	zoomedAreaCentreY = 0
 	zoomOnLeft = true
 	timeoutID = 0
-	permittedTime = $('#permitted_time_override').val()
+	permittedTime = parseInt($('#permitted_time_override').val(), 10)
 	noMove = {cell: 4, color: 0, workerType: 0}
 	arenaWidth = 2500
 	arenaHeight = 1000
@@ -153,7 +153,7 @@ function initialiseSupplementaryCanvases() {
 	zoomCanvas.width = 1000
 	zoomCanvas.height = 1000
 	zoomCtx = zoomCanvas.getContext('2d')
-	zoomCellsPerSide = $('#squares_per_side').val()
+	zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
 	zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
 	zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
 	for (i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
@@ -364,7 +364,7 @@ function initialiseInterface() {
 	})
 	$('#delay').val(delay)
 	$('#delay').change(function() {
-		delay = $('#delay').val()
+		delay = parseInt($('#delay').val(), 10)
 	})
 	$('#play').prop('disabled', true)
 	$('#play').click(function() {
@@ -391,7 +391,7 @@ function initialiseInterface() {
 	})
 	$('#max_players').val(maxPlayers)
 	$('#max_players').change(function() {
-		maxPlayers = $('#max_players').val()
+		maxPlayers = parseInt($('#max_players').val(), 10)
 	})
 	$('#fit_canvas').click(function() {
 		displayCanvas.style.borderLeft = 'none'
@@ -443,7 +443,7 @@ function initialiseInterface() {
 		initialiseLeaderboard()
 	})
 	$('#permitted_time_override').change(function() {
-		permittedTime = $('#permitted_time_override').val()
+		permittedTime = parseInt($('#permitted_time_override').val(), 10)
 	})
 	$('#debug').change(function() {
 		debug = $('#debug').prop('checked')
@@ -455,7 +455,7 @@ function initialiseInterface() {
 	$('#seed').prop('disabled', true)
 	$('#new_challenger_text').change(function() {})
 	$('#squares_per_side').change(function() {
-		zoomCellsPerSide = $('#squares_per_side').val()
+		zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
 		zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
 		if (zoomed) {
 			fillZoomCanvas()
@@ -469,7 +469,7 @@ function showLoadedTime() {
 }
 
 function displayGameTable() {
-	var content = '', imageID
+	var content = ''
 	gameStats.forEach(function(row) {
 		content += '<tr><td>' + row.title +
 			'<td>' + row.player.imageTags[paletteChoice] +
@@ -615,7 +615,7 @@ function displayZoomedArea() {
 function startNewGame() {
 	gameInProgress = true
 	if ($('#seeded_random').prop('checked')) {
-		random = seededRandomInitialiser($('#seed').val())
+		random = parseInt(seededRandomInitialiser($('#seed').val()), 10)
 	} else {
 		random = cryptoRandom
 	}
@@ -673,7 +673,6 @@ function startNewGame() {
 			player: player,
 			id: player.id,
 			title: player.title,
-			imageTag: player.imageTags[paletteChoice],
 			type1: 0,
 			type2: 0,
 			type3: 0,
@@ -838,6 +837,7 @@ function makeWorker(x, y, workerType, parent) {
 							row['food']--
 						}
 					})
+					sortGameStats()
 					displayGameTable()
 				}				
 			}
@@ -868,6 +868,7 @@ function moveAnt(x, y, ant) {
 							row.food++
 						}
 					})
+					sortGameStats()
 					displayGameTable()					
 				}
 			}
@@ -891,6 +892,7 @@ function passFood(ant) {
 						row['food']++
 					}
 				})
+				sortGameStats()
 				displayGameTable()
 			}
 		}
@@ -912,6 +914,7 @@ function passFood(ant) {
 							row['food']++
 						}
 					})
+					sortGameStats()
 					displayGameTable()
 					return
 				}
@@ -940,7 +943,7 @@ function gameOver() {
 	abandonGame()
 }
 
-function sortLeaderboard() {	//	Sort by position, then by confidence if position equal, then by age if those equal
+function sortLeaderboard() {	//	Sort by position, then by confidence if position equal, then by age if those equal.
 	leaderboardInfo.sort(function(a, b) {
 		if (a.position > b.position) {
 			return 1
@@ -952,6 +955,29 @@ function sortLeaderboard() {	//	Sort by position, then by confidence if position
 			return -1
 		}
 		if (a.confidence < b.confidence) {
+			return 1
+		}
+		if (a.id > b.id) {
+			return 1
+		}
+		if (a.id < b.id) {
+			return -1
+		}
+	})
+}
+
+function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal.
+	gameStats.sort(function(a, b) {
+		if (a.food > b.food) {
+			return -1
+		}
+		if (a.food < b.food) {
+			return 1
+		}
+		if (a.type1 + a.type2 + a.type3 + a.type4 > b.type1 + b.type2 + b.type3 + b.type4) {
+			return -1
+		}
+		if (a.type1 + a.type2 + a.type3 + a.type4 < b.type1 + b.type2 + b.type3 + b.type4) {
 			return 1
 		}
 		if (a.id > b.id) {
