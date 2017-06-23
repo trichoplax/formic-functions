@@ -1,58 +1,78 @@
 body {
-  margin: auto;
-  text-align: center;
+	margin: auto;
+	text-align: center;
 }
 textarea {
-  width: 1250px;
-  margin: auto;
-  background-color: #102;
-  color: #00ff00;
+	width: 1250px;
+	margin: auto;
+	background-color: #102;
+	color: #00ff00;
 }
 canvas {
-  border: 0.1em solid black;
+	border: 0.1em solid black;
 }
 table {
-  margin-top: 1em;
-  margin-bottom: 1em;
-  margin-left: auto;
-  margin-right: auto;
-  border: 0.1em solid black;
-  border-collapse: collapse;
-  text-align: center;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: auto;
+	margin-right: auto;
+	border: 0.1em solid black;
+	border-collapse: collapse;
+	text-align: center;
 }
 th, td {
-  border: 0.1em solid black;
-  padding-left: 1em;
-  padding-right: 1em;
+	border: 0.1em solid black;
+	padding-left: 1em;
+	padding-right: 1em;
  }
 h1, h3 {
-  margin: 0.5em;
+	margin: 0.5em;
 }
 .tableImage {
-  width: 1em;
-  height: 1em;
-  image-rendering: -moz-crisp-edges;	
-  image-rendering: -o-crisp-edges;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  -ms-interpolation-mode: nearest-neighbor;
-  
+	width: 1em;
+	height: 1em;
+	image-rendering: -moz-crisp-edges;	
+	image-rendering: -o-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: crisp-edges;
+	-ms-interpolation-mode: nearest-neighbor;
+}
+.dropdown {
+	position: relative;
+	display: inline-block;
+}
+.dropdown_content {
+	display: none;
+	position: absolute;
+	z-index: 1;
+}
+.dropdown:hover .dropdown_content {
+	display: block;
+}
+.palette_row_image {
+	width: 32em;
+	height: 2em;
+	image-rendering: -moz-crisp-edges;	
+	image-rendering: -o-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: crisp-edges;
+	-ms-interpolation-mode: nearest-neighbor;
 }
 #delay, #permitted_time_override {
-  width: 5em;
+	width: 5em;
 }
 #max_players {
-  width: 4em;
+	width: 4em;
 }
 #controls_area, #no_display_area, #delay_area, #max_area, #fit_area, #abandon_game_area, #reset_leaderboard_area, #completed_moves_area {
-  display: inline-block;
-  padding-left: 1.5em;
-  padding-right: 1.5em;
+	display: inline-block;
+	padding-left: 1.5em;
+	padding-right: 1.5em;
 }
 #run_single_game, #run_full_tournament {
-  margin-bottom: 1em;
+	margin-bottom: 1em;
 }
 #no_display, #play, #pause, #step, #step_ant, #fit_canvas, #abandon_game, #reset_leaderboard {
-  padding-left: 0em;
-  padding-right: 0em;
+	padding-left: 0em;
+	padding-right: 0em;
 }

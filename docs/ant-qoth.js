@@ -70,36 +70,16 @@ function setGlobals() {
 		{x:-1, y:1},
 		{x:0, y:1},
 		{x:1, y:1}
-	]	
-	arenaCanvas = document.createElement('canvas')
-	arenaCanvas.width = arenaWidth
-	arenaCanvas.height = arenaHeight
-	arenaCtx = arenaCanvas.getContext('2d')
-	arenaImage = arenaCtx.createImageData(arenaWidth, arenaHeight)
-	for (var i=0; i<arenaCanvas.width*arenaCanvas.height; i++) {
-		arenaImage.data[i*4 + 3] = 255
-	}
+	]
+	paletteChoice = 0
+	initialiseColorPalettes()
+	initialiseSupplementaryCanvases()
+}
+
+function initialiseColorPalettes() {
+	var arenaColor = {}
+	arenaColors = []
 	
-	zoomCanvas = document.createElement('canvas')
-	zoomCanvas.width = 1000
-	zoomCanvas.height = 1000
-	zoomCtx = zoomCanvas.getContext('2d')
-	zoomCellsPerSide = $('#squares_per_side').val()
-	zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
-	zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
-	for (var i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
-		zoomImage.data[i*4 + 3] = 255
-	}
-	zoomCtx.imageSmoothingEnabled = false
-	
-	displayCanvas = document.getElementById('display_canvas')
-	displayCanvas.width = 1250
-	displayCanvas.height = 500
-	displayCtx = displayCanvas.getContext('2d')
-	
-	arenaColor = {}
-	arenaColor.food = [0, 0, 0]
-	arenaColor.ant = [255, 0, 0]
 	arenaColor.tile = [
 		null,
 		[255, 255, 255],
@@ -119,44 +99,146 @@ function setGlobals() {
 		[128, 255, 255],
 		[0, 0, 0]
 	]
+	arenaColor.food = arenaColor.tile[16]
+	arenaColor.ant = arenaColor.tile[16]
+	arenaColors.push(arenaColor)
 	
-	paletteCanvas = document.createElement('canvas')
-	paletteCanvas.width = 17
-	paletteCanvas.height = 1
-	paletteCtx = paletteCanvas.getContext('2d')
-	paletteImage = paletteCtx.createImageData(paletteCanvas.width, paletteCanvas.height)
-	for (var i=1; i<paletteCanvas.width; i++) {
-		for (var c=0; c<3; c++) {
-			paletteImage.data[i*4 + c] = arenaColor.tile[i][c]
-		}
-		paletteImage.data[i*4 + 3] = 255
+	arenaColor = {}
+	arenaColor.tile = [null]
+	for (var i=16; i>=0; i--) {
+		var value = i * 17
+		arenaColor.tile.push([value, value, value])
 	}
-	paletteCtx.putImageData(paletteImage, 0, 0)
+	arenaColor.food = arenaColor.tile[16]
+	arenaColor.ant = arenaColor.tile[16]
+	arenaColors.push(arenaColor)
+	
+	arenaColor = {}
+	arenaColor.tile = [
+		null,
+		[255, 255, 255],
+		[204, 121, 167],
+		[213, 94, 0],
+		[0, 114, 178],
+		[240, 228, 66],
+		[0, 158, 115],
+		[86, 180, 233],
+		[230, 159, 0],
+		[102, 61, 84],
+		[107, 47, 0],
+		[0, 57, 89],
+		[120, 114, 33],
+		[0, 79, 58],
+		[43, 90, 117],
+		[115, 80, 0],
+		[0, 0, 0]
+	]
+	arenaColor.food = arenaColor.tile[16]
+	arenaColor.ant = arenaColor.tile[16]
+	arenaColors.push(arenaColor)
+}
+
+function initialiseSupplementaryCanvases() {
+	var i, j
+	arenaCanvas = document.createElement('canvas')
+	arenaCanvas.width = arenaWidth
+	arenaCanvas.height = arenaHeight
+	arenaCtx = arenaCanvas.getContext('2d')
+	arenaImage = arenaCtx.createImageData(arenaWidth, arenaHeight)
+	for (i=0; i<arenaCanvas.width*arenaCanvas.height; i++) {
+		arenaImage.data[i*4 + 3] = 255
+	}
+	
+	zoomCanvas = document.createElement('canvas')
+	zoomCanvas.width = 1000
+	zoomCanvas.height = 1000
+	zoomCtx = zoomCanvas.getContext('2d')
+	zoomCellsPerSide = $('#squares_per_side').val()
+	zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
+	zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
+	for (i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
+		zoomImage.data[i*4 + 3] = 255
+	}
+	zoomCtx.imageSmoothingEnabled = false
+	
+	displayCanvas = document.getElementById('display_canvas')
+	displayCanvas.width = 1250
+	displayCanvas.height = 500
+	displayCtx = displayCanvas.getContext('2d')
+	
+	var paletteCanvas, paletteCtx, paletteImage
+	paletteCanvases = []
+	paletteContexts = []
+	for (i=0; i<arenaColors.length; i++) {
+		paletteCanvas = document.createElement('canvas')
+		paletteCanvas.width = 17
+		paletteCanvas.height = 1
+		paletteCtx = paletteCanvas.getContext('2d')
+		paletteImage = paletteCtx.createImageData(paletteCanvas.width, paletteCanvas.height)
+		for (j=1; j<paletteCanvas.width; j++) {
+			for (var c=0; c<3; c++) {
+				paletteImage.data[j*4 + c] = arenaColors[i].tile[j][c]
+			}
+			paletteImage.data[j*4 + 3] = 255
+		}
+		paletteCtx.putImageData(paletteImage, 0, 0)
+		paletteCanvases.push(paletteCanvas)
+		paletteContexts.push(paletteCtx)
+	}
+	initialisePaletteDropdown()
+}
+
+function initialisePaletteDropdown() {
+	var canvas, imageSource, i, content=''
+	paletteImageSources = []
+	paletteCanvases.forEach(function(canvas) {
+		imageSource = canvas.toDataURL()
+		paletteImageSources.push(imageSource)
+	})	
+	$('#selected_palette').attr('src', paletteImageSources[paletteChoice]) 
+	for (i=0; i<paletteImageSources.length; i++) {
+		content += '<div onclick="setNewPalette(' + i + ')"><img src=\'' + paletteImageSources[i] + '\' class=\'palette_row_image\'></img></div>'
+	}
+	$('#palette_dropdown_options').html(content)
+}
+
+function setNewPalette(selectedDropdownRow) {
+	if (selectedDropdownRow !== paletteChoice) {
+		paletteChoice = selectedDropdownRow
+		$('#selected_palette').attr('src', paletteImageSources[paletteChoice])
+		displayGameTable()
+		displayLeaderboard()
+		displayArena()
+	}
 }
 
 function colorPlayers() {
-	patternCanvas = document.createElement('canvas')
-	patternCanvas.width = 2 * players.length
-	patternCanvas.height = 2
-	patternCtx = patternCanvas.getContext('2d')
 	random = seededRandomInitialiser(1)
-	for (var player=0; player<players.length; player++) {
-		var colors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+	var playerColorNumbers, canvas, context, count, color, x, y, imageSource
+	var colors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+	players.forEach(function(player) {
+		player.avatars = []
+		player.imageTags = []
 		shuffle(colors)
-		for (var square=0; square<4; square++) {
-			var x = player * 2 + square % 2
-			var y = Math.floor(square / 2)
-			var color = colors[square]
-			patternCtx.drawImage(paletteCanvas, color, 0, 1, 1, x, y, 1, 1)			
-		}
-		var playerCanvas = document.createElement('canvas')
-		playerCanvas.width = 2
-		playerCanvas.height = 2
-		var playerCtx = playerCanvas.getContext('2d')
-		playerCtx.drawImage(patternCanvas, player*2, 0, 2, 2, 0, 0, 2, 2)
-		var imageSource = playerCanvas.toDataURL()
-		players[player].imageTag = '<img src=\'' + imageSource + '\' class=\'tableImage\'></img>'
-	}
+		playerColorNumbers = colors.slice(0, 4)
+		paletteCanvases.forEach(function(paletteCanvas) {
+			canvas = document.createElement('canvas')
+			canvas.width = 2
+			canvas.height = 2
+			context = canvas.getContext('2d')
+			count = 0
+			for (y=0; y<2; y++) {
+				for (x=0; x<2; x++) {
+					color = playerColorNumbers[count]
+					context.drawImage(paletteCanvas, color, 0, 1, 1, x, y, 1, 1)
+					count++
+				}
+			}
+			player.avatars.push(canvas)
+			imageSource = canvas.toDataURL()
+			player.imageTags.push('<img src=\'' + imageSource + '\' class=\'tableImage\'></img>')
+		})
+	})
 }
 
 /* HELPERS */
@@ -225,6 +307,7 @@ function initialiseInterface() {
 			}
 		}
 	})
+	$('#run_single_game').prop('disabled', false)
 	$('#run_single_game').click(function() {
 		ongoingTournament = false
 		$('#run_single_game').html('<h2>Running single game</h2>')
@@ -246,6 +329,7 @@ function initialiseInterface() {
 			startNewGame()
 		}		
 	})
+	$('#run_ongoing_tournament').prop('disabled', false)
 	$('#run_ongoing_tournament').click(function() {
 		ongoingTournament = true
 		$('#run_single_game').html('<h2>Run single game</h2>')
@@ -385,15 +469,15 @@ function showLoadedTime() {
 }
 
 function displayGameTable() {
-	var content = ''
+	var content = '', imageID
 	gameStats.forEach(function(row) {
-		content += '<tr><td>' + row['title'] +
-			'<td>' + row['imageTag'] +
-			'<td>' + row['type1'] +
-			'<td>' + row['type2'] +
-			'<td>' + row['type3'] +
-			'<td>' + row['type4'] +
-			'<td>' + row['food']			
+		content += '<tr><td>' + row.title +
+			'<td>' + row.player.imageTags[paletteChoice] +
+			'<td>' + row.type1 +
+			'<td>' + row.type2 +
+			'<td>' + row.type3 +
+			'<td>' + row.type4 +
+			'<td>' + row.food
 	})
 	$('#current_game_body').html(content)
 }
@@ -403,6 +487,7 @@ function initialiseLeaderboard() {
 	$('#game_counter').html('0 games played.')
 	players.forEach(function(player) {
 		var row = {
+			player: player,
 			id: player['id'],
 			position: 1,
 			title: player['title'],
@@ -419,35 +504,24 @@ function displayLeaderboard() {
 	var	content = ''
 	leaderboardInfo.forEach(function(row) {
 		var checkboxId = 'included_' + row['id']
-		content += '<tr>'
-		content += '<td>'
-		content += row['position']
-		content += '</td>'
-		content += '<td>'
-		content += row['title']
-		content += '</td>'
-		content += '<td>'
-		content += row['score']
-		content += '</td>'
-		content += '<td>'
-		content += row['confidence']
-		content += '</td>'
-		content += '<td>'
-		content += '<input id=' + checkboxId + ' type=checkbox>'
-		content += '</td>'
-		content += '</tr>'
+		content += '<tr><td>' + row.position
+		content += '<td>' + row.title
+		content += '<td>' + row.player.imageTags[paletteChoice]
+		content += '<td>' + row.score
+		content += '<td>' + row.confidence
+		content += '<td><input id=' + checkboxId + ' type=checkbox>'
 	})
 	$('#leaderboard_body').html(content)
 	leaderboardInfo.forEach(function(row) {
-		var id = row['id']
+		var id = row.id
 		var checkboxId = '#included_' + id
-		$(checkboxId).prop('checked', row['included'])
+		$(checkboxId).prop('checked', row.included)
 		var player = players[players.findIndex(function(player){
-			return player['id'] === id
+			return player.id === id
 		})]
 		$(checkboxId).change(function() {
-			player['included'] = $(checkboxId).prop('checked')
-			row['included'] = $(checkboxId).prop('checked')
+			player.included = $(checkboxId).prop('checked')
+			row.included = $(checkboxId).prop('checked')
 		})
 	})	
 }
@@ -459,15 +533,15 @@ function fillArenaCanvas() {
 			cell = arena[x + y*arenaWidth]
 			if (cell.food) {
 				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColor.food[i]
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].food[i]
 				}
 			} else if (cell.ant) {
 				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColor.ant[i]
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].ant[i]
 				}			
 			} else {
 				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColor.tile[cell.color][i]
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].tile[cell.color][i]
 				}			
 			}
 		}
@@ -496,7 +570,7 @@ function fillZoomCanvas() {
 }
 
 function paintTile(x, y, color) {
-	zoomCtx.drawImage(paletteCanvas, color, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
+	zoomCtx.drawImage(paletteCanvases[paletteChoice], color, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
 }
 
 function paintFood(x, y) {
@@ -515,7 +589,8 @@ function paintAnt(x, y, ant) {
 	} else {
 		var size = zoomCellSideLength * .2
 	}
-	zoomCtx.drawImage(patternCanvas, ant.player.colorIndex*2, 0, 2, 2, (x+0.5)*zoomCellSideLength - size, (y+0.5)*zoomCellSideLength - size, size*2, size*2)
+	var player = ant.player
+	zoomCtx.drawImage(player.avatars[paletteChoice], 0, 0, 2, 2, (x+0.5)*zoomCellSideLength - size, (y+0.5)*zoomCellSideLength - size, size*2, size*2)
 }
 
 function displayArena() {
@@ -595,9 +670,10 @@ function startNewGame() {
 			}
 		}
 		var row = {
+			player: player,
 			id: player.id,
 			title: player.title,
-			imageTag: player.imageTag,
+			imageTag: player.imageTags[paletteChoice],
 			type1: 0,
 			type2: 0,
 			type3: 0,
@@ -1060,9 +1136,8 @@ function loadAnswers(site, qid, onFinish) {
 function createPlayers(answers) {
     var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
     var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
-	
-	var colorIndex = 0
-	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER', colorIndex: colorIndex }
+
+	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER' }
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -1101,8 +1176,6 @@ function createPlayers(answers) {
 			
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,20) + ' - ' + user
-			colorIndex++
-			player.colorIndex = colorIndex
 			players.push(player)
 		}		
 	})

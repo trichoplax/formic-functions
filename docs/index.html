@@ -8,8 +8,8 @@
   <h1>Formic Functions - Ant Queen of the Hill Contest</h1>
   <div id='top_hidden_area'>
     <div>
-      <button id='run_single_game'><h2>Run single game</h2></button>
-      <button id='run_ongoing_tournament'><h2>Run ongoing tournament</h2></button>
+      <button id='run_single_game' disabled='true'><h2>Run single game</h2></button>
+      <button id='run_ongoing_tournament' disabled='true'><h2>Run ongoing tournament</h2></button>
     </div>
     
     <div>
@@ -64,7 +64,7 @@
     <thead>
       <tr>
         <th>Position</th>
-        <th>Player</th>
+        <th colspan='2'>Player</th>
         <th>Score</th>
         <th>Confidence of position (0-1)</th>
         <th>Included</th>
@@ -79,14 +79,21 @@
     	Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
     </div>
     <div>
-	    Logging to console for debugging the new challenger:<input id='debug' type='checkbox'></input>
+	    Logging to console for debugging the new challenger: <input id='debug' type='checkbox'></input>
     </div>
     <div>
-    	Seeded random numbers (same outcome every game for debugging):<input id='seeded_random' type='checkbox'></input> Seed:<input id='seed' type='number' value='1' min='1' max='4294967295'></input>
+    	Seeded random numbers (same outcome every game for debugging): <input id='seeded_random' type='checkbox'></input> Seed: <input id='seed' type='number' value='1' min='1' max='4294967295'></input>
     </div>
     <div>
-    	Squares per side in zoomed area:<input id='squares_per_side' type='number' value='50' min='3' max='100'></input>
+    	Squares per side in zoomed area: <input id='squares_per_side' type='number' value='50' min='3' max='100'></input>
     </div>
+    <br>
+    Available color palettes to help with variation in color vision:
+    <div class='dropdown'>
+		<img id='selected_palette' class='palette_row_image'></img>
+		<div id='palette_dropdown_options' class='dropdown_content'>
+		</div>
+	</div>
     <h3>New challenger</h3>
     <textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - enter function body to be tested here)' rows='30' spellcheck='false'></textarea>
   </div>
