@@ -89,28 +89,26 @@ function initialiseColorPalettes() {
 		[255, 0, 0],
 		[0, 255, 0],
 		[0, 0, 255],
-		[128, 128, 128],
-		[128, 128, 0],
-		[128, 0, 128],
-		[0, 128, 128],
-		[128, 0, 0],
-		[0, 128, 0],
-		[0, 0, 128],
-		[128, 255, 255],
 		[0, 0, 0]
 	]
-	arenaColor.food = arenaColor.tile[16]
-	arenaColor.ant = arenaColor.tile[16]
+	arenaColor.food = arenaColor.tile[8]
+	arenaColor.ant = arenaColor.tile[8]
 	arenaColors.push(arenaColor)
 	
 	arenaColor = {}
-	arenaColor.tile = [null]
-	for (var i=16; i>=0; i--) {
-		var value = i * 17
-		arenaColor.tile.push([value, value, value])
-	}
-	arenaColor.food = arenaColor.tile[16]
-	arenaColor.ant = arenaColor.tile[16]
+	arenaColor.tile = [
+		null,
+		[255, 255, 255],
+		[218, 218, 218],
+		[181, 181, 181],
+		[144, 144, 144],
+		[108, 108, 108],
+		[72, 72, 72],
+		[36, 36, 36],
+		[0, 0, 0]
+	]
+	arenaColor.food = arenaColor.tile[8]
+	arenaColor.ant = arenaColor.tile[8]
 	arenaColors.push(arenaColor)
 	
 	arenaColor = {}
@@ -123,18 +121,10 @@ function initialiseColorPalettes() {
 		[240, 228, 66],
 		[0, 158, 115],
 		[86, 180, 233],
-		[230, 159, 0],
-		[102, 61, 84],
-		[107, 47, 0],
-		[0, 57, 89],
-		[120, 114, 33],
-		[0, 79, 58],
-		[43, 90, 117],
-		[115, 80, 0],
 		[0, 0, 0]
 	]
-	arenaColor.food = arenaColor.tile[16]
-	arenaColor.ant = arenaColor.tile[16]
+	arenaColor.food = arenaColor.tile[8]
+	arenaColor.ant = arenaColor.tile[8]
 	arenaColors.push(arenaColor)
 }
 
@@ -171,7 +161,7 @@ function initialiseSupplementaryCanvases() {
 	paletteContexts = []
 	for (i=0; i<arenaColors.length; i++) {
 		paletteCanvas = document.createElement('canvas')
-		paletteCanvas.width = 17
+		paletteCanvas.width = 9
 		paletteCanvas.height = 1
 		paletteCtx = paletteCanvas.getContext('2d')
 		paletteImage = paletteCtx.createImageData(paletteCanvas.width, paletteCanvas.height)
@@ -215,7 +205,7 @@ function setNewPalette(selectedDropdownRow) {
 function colorPlayers() {
 	random = seededRandomInitialiser(1)
 	var playerColorNumbers, canvas, context, count, color, x, y, imageSource
-	var colors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+	var colors = [1, 2, 3, 4, 5, 6, 7, 8]
 	players.forEach(function(player) {
 		player.avatars = []
 		player.imageTags = []
@@ -1089,7 +1079,7 @@ function disqualifyPlayer(message) {
 	if (debug) {
 		console.log(message)
 	}
-	
+	// TODO 
 }
 
 function step() {	// Step all ants up to the last one in the population.

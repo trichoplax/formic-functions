@@ -50,7 +50,7 @@ h1, h3 {
 	display: block;
 }
 .palette_row_image {
-	width: 32em;
+	width: 16em;
 	height: 2em;
 	image-rendering: -moz-crisp-edges;	
 	image-rendering: -o-crisp-edges;
