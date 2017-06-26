@@ -471,7 +471,7 @@ function showLoadedTime() {
 function displayGameTable() {
 	var content = ''
 	gameStats.forEach(function(row) {
-		content += '<tr><td>' + row.title +
+		content += '<tr><td><a href="' + row.link + '" target="_blank">' + row.title + '</a>' +
 			'<td>' + row.player.imageTags[paletteChoice] +
 			'<td>' + row.type1 +
 			'<td>' + row.type2 +
@@ -488,12 +488,13 @@ function initialiseLeaderboard() {
 	players.forEach(function(player) {
 		var row = {
 			player: player,
-			id: player['id'],
+			id: player.id,
 			position: 1,
-			title: player['title'],
+			title: player.title,
+			link: player.link,
 			score: 0,
 			confidence: 0,
-			included: player['included']
+			included: player.included
 		}
 		leaderboardInfo.push(row)
 	})
@@ -503,9 +504,9 @@ function initialiseLeaderboard() {
 function displayLeaderboard() {
 	var	content = ''
 	leaderboardInfo.forEach(function(row) {
-		var checkboxId = 'included_' + row['id']
+		var checkboxId = 'included_' + row.id
 		content += '<tr><td>' + row.position
-		content += '<td>' + row.title
+		content += '<td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
 		content += '<td>' + row.player.imageTags[paletteChoice]
 		content += '<td>' + row.score
 		content += '<td>' + row.confidence
@@ -633,7 +634,7 @@ function startNewGame() {
 	shuffle(arena)
 	var includedPlayers = []
 	players.forEach(function(player) {
-		if (player['included']) {
+		if (player.included) {
 			includedPlayers.push(player)
 			if (player.id === 0) {
 				player.code = $('#new_challenger_text').val()
@@ -673,6 +674,7 @@ function startNewGame() {
 			player: player,
 			id: player.id,
 			title: player.title,
+			link: player.link,
 			type1: 0,
 			type2: 0,
 			type3: 0,
@@ -834,7 +836,7 @@ function makeWorker(x, y, workerType, parent) {
 						if (row.id === id) {
 							var type = 'type' + workerType
 							row[type]++
-							row['food']--
+							row.food--
 						}
 					})
 					sortGameStats()
@@ -889,7 +891,7 @@ function passFood(ant) {
 				var id = ant.player.id
 				gameStats.forEach(function(row) {
 					if (row.id === id) {
-						row['food']++
+						row.food++
 					}
 				})
 				sortGameStats()
@@ -911,7 +913,7 @@ function passFood(ant) {
 					var id = candidate.player.id
 					gameStats.forEach(function(row) {
 						if (row.id === id) {
-							row['food']++
+							row.food++
 						}
 					})
 					sortGameStats()
@@ -1163,7 +1165,7 @@ function createPlayers(answers) {
     var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
     var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
-	var testPlayer = { id: 0, included: false, code: '', link: 'javascript:;', title: 'NEW CHALLENGER' }
+	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
