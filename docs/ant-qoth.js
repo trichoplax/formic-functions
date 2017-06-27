@@ -870,46 +870,80 @@ function moveAnt(x, y, ant) {
 
 function passFood(ant) {
 	if (ant.type === 5) {
-		for (var i=0; i<neighbours.length; i++) {
-			var x = (ant.x + neighbours[i].x + arenaWidth) % arenaWidth
-			var y = (ant.y + neighbours[i].y + arenaHeight) % arenaHeight
-			var cell = arena[x + y*arenaWidth]
-			var candidate = cell.ant
-			if (candidate && candidate.type < 5 && candidate.food) {
-				candidate.food = 0
-				ant.food++
-				var id = ant.player.id
-				gameStats.forEach(function(row) {
-					if (row.id === id) {
-						row.food++
-					}
-				})
-				sortGameStats()
-				displayGameTable()
-			}
-		}
+		passFoodQueen(ant)
 	} else {
-		if (ant.food) {
-			var cells = neighbours.slice()
-			shuffle(cells)
-			for (var i=0; i<cells.length; i++) {
-				var x = (ant.x + cells[i].x + arenaWidth) % arenaWidth
-				var y = (ant.y + cells[i].y + arenaHeight) % arenaHeight
-				var cell = arena[x + y*arenaWidth]
-				var candidate = cell.ant
-				if (candidate && candidate.type === 5) {
-					ant.food = 0
-					candidate.food++
-					var id = candidate.player.id
-					gameStats.forEach(function(row) {
-						if (row.id === id) {
-							row.food++
-						}
-					})
-					sortGameStats()
-					displayGameTable()
-					return
-				}
+		passFoodWorker(ant)
+	}
+}
+
+function adjustFood(ant, change) {
+	var id
+	ant.food = ant.food + change
+	id = ant.player.id
+	gameStats.forEach(function(row) {
+		if (row.id === id) {
+			row.food = row.food + change
+		}
+	})
+	sortGameStats()
+	displayGameTable()
+}
+
+function passFoodQueen(ant) {
+	var x, y, i, cell, cells, candidate
+	cells = neighbours.slice()
+	shuffle(cells)
+	for (i=0; i<cells.length; i++) {	// Check for enemy workers to lose food to.
+		if (!ant.food) {
+			break
+		}
+		x = (ant.x + cells[i].x + arenaWidth) % arenaWidth
+		y = (ant.y + cells[i].y + arenaHeight) % arenaHeight
+		cell = arena[x + y*arenaWidth]
+		candidate = cell.ant
+		if (candidate && candidate.type < 5 && !candidate.food && candidate.player !== ant.player) {
+			candidate.food = 1
+			adjustFood(ant, -1)
+		}
+	}
+	for (i=0; i<cells.length; i++) {	// Check for friendly workers to take food from.
+		x = (ant.x + cells[i].x + arenaWidth) % arenaWidth
+		y = (ant.y + cells[i].y + arenaHeight) % arenaHeight
+		cell = arena[x + y*arenaWidth]
+		candidate = cell.ant
+		if (candidate && candidate.type < 5 && candidate.food && candidate.player === ant.player) {
+			candidate.food = 0
+			adjustFood(ant, 1)
+		}
+	}
+}
+	
+function passFoodWorker(ant) {
+	var x, y, i, cell, cells, candidate
+	if (ant.food) {	// Check for friendly queen to give food to.
+		for (i=0; i<neighbours.length; i++) {
+			x = (ant.x + neighbours[i].x + arenaWidth) % arenaWidth
+			y = (ant.y + neighbours[i].y + arenaHeight) % arenaHeight
+			cell = arena[x + y*arenaWidth]
+			candidate = cell.ant
+			if (candidate && candidate.type === 5 && candidate.player === ant.player) {
+				ant.food = 0
+				adjustFood(candidate, 1)
+				return
+			}		
+		}
+	} else {	// Check for enemy queen to take food from.
+		cells = neighbours.slice()
+		shuffle(cells)
+		for (i=0; i<cells.length; i++) {
+			x = (ant.x + cells[i].x + arenaWidth) % arenaWidth
+			y = (ant.y + cells[i].y + arenaHeight) % arenaHeight
+			cell = arena[x + y*arenaWidth]
+			candidate = cell.ant
+			if (candidate && candidate.type === 5 && candidate.food && candidate.player !== ant.player) {
+				ant.food = 1
+				adjustFood(candidate, -1)
+				return
 			}
 		}
 	}
