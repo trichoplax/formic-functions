@@ -21,6 +21,7 @@ function setGlobals() {
 	population = []
 	moveCounter = 0
 	movesPerGame = 10000
+	paletteSize = 8
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
 	delay = parseInt($('#delay').val(), 10)
 	processingStartTime = 0
@@ -165,7 +166,7 @@ function initialiseSupplementaryCanvases() {
 		paletteCanvas.height = 1
 		paletteCtx = paletteCanvas.getContext('2d')
 		paletteImage = paletteCtx.createImageData(paletteCanvas.width, paletteCanvas.height)
-		for (j=1; j<paletteCanvas.width; j++) {
+		for (j=1; j<paletteSize+1; j++) {
 			for (var c=0; c<3; c++) {
 				paletteImage.data[j*4 + c] = arenaColors[i].tile[j][c]
 			}
@@ -768,19 +769,12 @@ function processCurrentAnt() {
 	var x = (currentAnt.x + targetCell%3 - 1 + arenaWidth) % arenaWidth
 	var y = (currentAnt.y + Math.floor(targetCell/3) - 1 + arenaHeight) % arenaHeight
 	if (response.color) {
-		if (response.workerType) {
-			console.log('Not permitted: Both color and worker type specified.')
-		} else {
-			setColor(x, y, response.color)
-		}
-	} else {
-		if (response.workerType) {
-			makeWorker(x, y, response.workerType, currentAnt)
-		} else {
-			moveAnt(x, y, currentAnt)
-		}
-	}		
-	passFood(currentAnt)
+		setColor(x, y, response.color)
+	} else if (response.workerType) {
+		makeWorker(x, y, response.workerType, currentAnt)
+	} else if (response.cell !== 4) {
+		moveAnt(x, y, currentAnt)
+	}
 }
 
 function displayMoveInfo(ant, rotatedView, response) {
@@ -805,67 +799,81 @@ function setColor(x, y, color) {
 }
 
 function makeWorker(x, y, workerType, parent) {
+	if (parent.type < 5) {
+		disqualify(player, 'A worker cannot create a new worker.')
+		return
+	}
+	if (!parent.food) {
+		disqualify(player, 'Cannot create a new worker without food.')
+		return
+	}
 	var birthCell = arena[x + y*arenaWidth]
-	if (parent.type === 5) {
-		if (parent.food > 0) {
-			if (!birthCell.food) {
-				if (!birthCell.ant) {
-					var newAnt = {
-						player: parent.player,
-						type: workerType,
-						food: 0,
-						x: x,
-						y: y
-					}
-					birthCell.ant = newAnt
-					population.splice(currentAntIndex, 0, newAnt)
-					currentAntIndex++
-					parent.food--
-					var id = parent.player.id
-					gameStats.forEach(function(row) {
-						if (row.id === id) {
-							var type = 'type' + workerType
-							row[type]++
-							row.food--
-						}
-					})
-					sortGameStats()
-					displayGameTable()
-				}				
-			}
+	if (birthCell.food) {
+		disqualify(player, 'Cannot create new worker on top of food.')
+		return
+	}
+	if (birthCell.ant) {
+		if (parent.x === x && parent.y === y) {
+			disqualify(player, 'Cannot create new worker on own cell.')
+			return
+		} else {
+			disqualify(player, 'Cannot create new worker on top of another ant.')
+			return
 		}
 	}
+	var newAnt = {
+		player: parent.player,
+		type: workerType,
+		food: 0,
+		x: x,
+		y: y
+	}
+	birthCell.ant = newAnt
+	population.splice(currentAntIndex, 0, newAnt)
+	currentAntIndex++
+	parent.food--
+	var id = parent.player.id
+	gameStats.forEach(function(row) {
+		if (row.id === id) {
+			var type = 'type' + workerType
+			row[type]++
+			row.food--
+		}
+	})
+	sortGameStats()
+	displayGameTable()
 }
 
 function moveAnt(x, y, ant) {
 	var departureCell = arena[ant.x + ant.y*arenaWidth]
-	var destinationCell = arena[x + y*arenaWidth]
-	if (!destinationCell.ant) {
-		if (destinationCell.food && ant.type < 5 && ant.food) {
-			if (debug) {
-				console.log('Error: a laden worker cannot move onto food.')
-			}
-		} else {			
-			destinationCell.ant = ant
-			departureCell.ant = null
-			ant.x = x
-			ant.y = y
-			if (destinationCell.food) {
-				destinationCell.food = 0
-				ant.food++
-				if (ant.type === 5) {
-					var id = ant.player.id
-					gameStats.forEach(function(row) {
-						if (row.id === id) {
-							row.food++
-						}
-					})
-					sortGameStats()
-					displayGameTable()					
+	var destinationCell = arena[x + y*arenaWidth]	
+	if (destinationCell.ant) {
+		disqualify(player, 'Cannot move onto another ant.')
+		return
+	}
+	if (destinationCell.food && ant.type < 5 && ant.food) {
+		disqualify(player, 'A laden worker cannot move onto food.')
+		return
+	}	
+	destinationCell.ant = ant
+	departureCell.ant = null
+	ant.x = x
+	ant.y = y
+	if (destinationCell.food) {
+		destinationCell.food = 0
+		ant.food++
+		if (ant.type === 5) {
+			var id = ant.player.id
+			gameStats.forEach(function(row) {
+				if (row.id === id) {
+					row.food++
 				}
-			}
+			})
+			sortGameStats()
+			displayGameTable()					
 		}
 	}
+	passFood(ant)
 }
 
 function passFood(ant) {
@@ -906,7 +914,7 @@ function passFoodQueen(ant) {
 			adjustFood(ant, -1)
 		}
 	}
-	for (i=0; i<cells.length; i++) {	// Check for friendly workers to take food from.
+	for (i=0; i<cells.length; i++) {	// Check for own workers to take food from.
 		x = (ant.x + cells[i].x + arenaWidth) % arenaWidth
 		y = (ant.y + cells[i].y + arenaHeight) % arenaHeight
 		cell = arena[x + y*arenaWidth]
@@ -920,7 +928,7 @@ function passFoodQueen(ant) {
 	
 function passFoodWorker(ant) {
 	var x, y, i, cell, cells, candidate
-	if (ant.food) {	// Check for friendly queen to give food to.
+	if (ant.food) {	// Check for own queen to give food to.
 		for (i=0; i<neighbours.length; i++) {
 			x = (ant.x + neighbours[i].x + arenaWidth) % arenaWidth
 			y = (ant.y + neighbours[i].y + arenaHeight) % arenaHeight
@@ -1094,25 +1102,40 @@ function getMove(ant, rotatedView) {
 		var response = maskedEval(code, parameters)
 	} catch(e) {
 		var response = noMove
-		disqualifyPlayer(e + '    Disqualified for error')
+		disqualify(player, e)
 	}
 	time = performance.now() - time
-	if (debug && time > permittedTime) {
-		console.log('Exceeded permitted time of ' + permittedTime + 'ms: ' + time)
+	if (time > permittedTime) {
+		console.log(player + ': Exceeded permitted time of ' + permittedTime + 'ms: ' + time)
 	}
 	player.time += time
 	player.permittedTime += permittedTime
 	if (player.time > 10000 && player.time > player.permittedTime) {
-		response = noMove
-		disqualifyPlayer('    Disqualified for exceeding permitted time')
+		disqualify(player, 'Exceeded permitted time averaged over more than 10 seconds.')
+		return noMove
+	}
+	if (response.color && response.workerType) {
+		disqualify(player, 'Both color and worker type specified.')
+		return noMove
+	}
+	if (response.cell < 0 || response.cell > 8) {
+		disqualify(player, 'Cell out of range: ' + response.cell)
+		return noMove
+	}
+	if (response.color < 0 || response.color > paletteSize) {
+		disqualify(player, 'Color out of range: ' + response.color)
+		return noMove
+	}
+	if (response.workerType < 0 || response.workerType > 4) {
+		disqualify(player, 'Worker type out of range: ' + response.workerType)
+		return noMove
 	}
 	return response
 }
 
-function disqualifyPlayer(message) {
-	if (debug) {
-		console.log(message)
-	}
+function disqualify(player, message) {
+	console.log(message)
+	console.log('    ' + player + ' DISQUALIFIED.')
 	// TODO 
 }
 
