@@ -724,7 +724,7 @@ function startNewGame() {
 	gameStats = []
 	population = []
 	playersThisGame.forEach(function(player) {
-		player.time = 0
+		player.elapsedTime = 0
 		player.permittedTime = 0
 		while (true) {
 			var x = random(arenaWidth)
@@ -1199,13 +1199,13 @@ function getMove(ant, rotatedView) {
 		disqualify(player, e, rotatedView, response)
 		return noMove
 	}
-	time = performance.now() - time
-	if (time > permittedTime) {
-		console.log(player + ': Exceeded permitted time of ' + permittedTime + 'ms: ' + time)
+	elapsedTime = performance.now() - time
+	if (elapsedTime > permittedTime) {
+		console.log(player + ': Exceeded permitted time of ' + permittedTime + 'ms: ' + elapsedTime)
 	}
-	player.time += time
+	player.elapsedTime += elapsedTime
 	player.permittedTime += permittedTime
-	if (player.time > 10000 && player.time > player.permittedTime) {
+	if (player.elapsedTime > 10000 && player.elapsedTime > player.permittedTime) {
 		disqualify(player, 'Exceeded permitted time averaged over more than 10 seconds.', rotatedView, response)
 		return noMove
 	}
@@ -1213,17 +1213,37 @@ function getMove(ant, rotatedView) {
 		disqualify(player, 'Both color and worker type specified.', rotatedView, response)
 		return noMove
 	}
+	if (typeof response.cell === 'undefined') {
+		disqualify(player, 'Cell undefined.', rotatedView, response)
+		return noMove
+	}
+	if (!Number.isInteger(response.cell)) {
+		disqualify(player, 'Cell is not an integer: ' + response.cell, rotatedView, response)
+		return noMove
+	}
 	if (response.cell < 0 || response.cell > 8) {
 		disqualify(player, 'Cell out of range: ' + response.cell, rotatedView, response)
 		return noMove
 	}
-	if (response.color < 0 || response.color > paletteSize) {
-		disqualify(player, 'Color out of range: ' + response.color, rotatedView, response)
-		return noMove
+	if (typeof response.color !== 'undefined') {
+		if (!Number.isInteger(response.color)) {
+			disqualify(player, 'Color is not an integer: ' + response.color, rotatedView, response)
+			return noMove
+		}
+		if (response.color < 0 || response.color > paletteSize) {
+			disqualify(player, 'Color out of range: ' + response.color, rotatedView, response)
+			return noMove
+		}
 	}
-	if (response.workerType < 0 || response.workerType > 4) {
-		disqualify(player, 'Worker type out of range: ' + response.workerType, rotatedView, response)
-		return noMove
+	if (typeof response.workerType !== 'undefined') {
+		if (!Number.isInteger(response.workerType)) {
+			disqualify(player, 'WorkerType is not an integer: ' + response.workerType, rotatedView, response)
+			return noMove
+		}
+		if (response.workerType < 0 || response.workerType > 4) {
+			disqualify(player, 'Worker type out of range: ' + response.workerType, rotatedView, response)
+			return noMove
+		}
 	}
 	return response
 }
