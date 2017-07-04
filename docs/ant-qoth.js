@@ -1200,6 +1200,9 @@ function getMove(ant, rotatedView) {
 		return noMove
 	}
 	elapsedTime = performance.now() - time
+	if (player.id === 0 && debug) {
+		console.log('Responded in ' + elapsedTime + ' ms.')
+	}
 	if (elapsedTime > permittedTime) {
 		console.log(player + ': Exceeded permitted time of ' + permittedTime + 'ms: ' + elapsedTime)
 	}
