@@ -18,6 +18,7 @@ function setGlobals() {
 	players = []
 	gameStats = []
 	leaderboardInfo = []
+	disqualifiedInfo = []
 	population = []
 	moveCounter = 0
 	movesPerGame = 10000
@@ -433,6 +434,8 @@ function initialiseInterface() {
 		leaderboardInfo = []
 		initialiseLeaderboard()
 	})
+	$('#current_game_table').hide()
+	$('#disqualified_table').hide()
 	$('#permitted_time_override').change(function() {
 		permittedTime = parseInt($('#permitted_time_override').val(), 10)
 	})
@@ -462,8 +465,14 @@ function showLoadedTime() {
 function displayGameTable() {
 	var content = ''
 	gameStats.forEach(function(row) {
-		content += '<tr><td><a href="' + row.link + '" target="_blank">' + row.title + '</a>' +
-			'<td>' + row.player.imageTags[paletteChoice] +
+		if (row.player.disqualified) {
+			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED: </a>' + row.title
+		} else if (row.player.id === 0) {
+			content += '<tr><td><a href="' + row.link + '">' + row.title + '</a>'
+		} else {
+			content += '<tr><td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
+		}
+		content += '<td>' + row.player.imageTags[paletteChoice] +
 			'<td>' + row.type1 +
 			'<td>' + row.type2 +
 			'<td>' + row.type3 +
@@ -484,8 +493,7 @@ function initialiseLeaderboard() {
 			title: player.title,
 			link: player.link,
 			score: 0,
-			confidence: 0,
-			included: player.included
+			confidence: 0
 		}
 		leaderboardInfo.push(row)
 	})
@@ -496,26 +504,98 @@ function displayLeaderboard() {
 	var	content = ''
 	leaderboardInfo.forEach(function(row) {
 		var checkboxId = 'included_' + row.id
-		content += '<tr><td>' + row.position
-		content += '<td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
-		content += '<td>' + row.player.imageTags[paletteChoice]
-		content += '<td>' + row.score
-		content += '<td>' + row.confidence
-		content += '<td><input id=' + checkboxId + ' type=checkbox>'
+		if (row.player.disqualified) {
+			content += '<tr class="greyed_row"><td>' + row.position
+			content += '<td><a href="#disqualified_table">DISQUALIFIED: </a>' + row.title
+		} else {
+			content += '<tr><td>' + row.position
+			if (row.player.id === 0) {
+				content += '<td><a href="' + row.link + '">' + row.title + '</a>'
+			} else {
+				content += '<td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
+			}
+		}
+		content += '<td>' + row.player.imageTags[paletteChoice] +
+			'<td>' + row.score +
+			'<td>' + row.confidence +
+			'<td><input id=' + checkboxId + ' type=checkbox>'
 	})
 	$('#leaderboard_body').html(content)
 	leaderboardInfo.forEach(function(row) {
 		var id = row.id
 		var checkboxId = '#included_' + id
-		$(checkboxId).prop('checked', row.included)
-		var player = players[players.findIndex(function(player){
+		$(checkboxId).prop('checked', row.player.included)
+		$(checkboxId).prop('disabled', row.player.disqualified)
+		var player = players[players.findIndex(function(player){  // TODO fix this mess
 			return player.id === id
 		})]
 		$(checkboxId).change(function() {
 			player.included = $(checkboxId).prop('checked')
-			row.included = $(checkboxId).prop('checked')
 		})
 	})	
+}
+
+function disqualify(player, reason, input, response) {
+	console.log(reason)
+	console.log('    DISQUALIFIED: ' + player)
+	var row = {
+		player: player,
+		reason: reason,
+		input: input,
+		response: response
+	}	
+	disqualifiedInfo.push(row)
+	displayDisqualifiedTable()
+	player.disqualified = true
+	player.included = false
+	sortGameStats()
+	sortLeaderboard()
+	displayGameTable()
+	displayLeaderboard()
+}
+
+function removeFromDisqualifiedTable(player) {
+	var i, index
+	for (i=0; i<disqualifiedInfo.length; i++) {
+		if (disqualifiedInfo[i].player === player) {
+			index = i
+			break
+		}
+	}
+	disqualifiedInfo.splice(index, 1)
+	if (disqualifiedInfo.length === 0) {
+		$('#disqualified_table').hide()
+	} else {
+		displayDisqualifiedTable()
+	}
+	player.disqualified = false
+	player.included = true
+	sortGameStats()
+	sortLeaderboard()
+	displayGameTable()
+	displayLeaderboard()
+}
+
+function displayDisqualifiedTable() {
+	var content, buttonID
+	$('#disqualified_table').show()
+	content = ''
+	disqualifiedInfo.forEach(function(row) {
+		buttonID = 'restore_' + row.player.id
+		content += '<tr><td><button id="' + buttonID + '">Restore</button>' +
+			'<td><a href="' + row.player.link + '" target="_blank">' + row.player.title + '</a>' +
+			'<td>' + row.player.imageTags[paletteChoice] +
+			'<td>' + row.reason +
+			'<td>' + JSON.stringify(row.input) +
+			'<td>' + JSON.stringify(row.response)
+	})
+	$('#disqualified_body').html(content)
+	disqualifiedInfo.forEach(function(row) {
+		buttonID = '#restore_' + row.player.id
+		$(buttonID).click(function() {
+			removeFromDisqualifiedTable(row.player)
+		})
+	})
 }
 
 function fillArenaCanvas() {
@@ -606,6 +686,7 @@ function displayZoomedArea() {
 
 function startNewGame() {
 	gameInProgress = true
+	$('#current_game_table').show()
 	if ($('#seeded_random').prop('checked')) {
 		random = parseInt(seededRandomInitialiser($('#seed').val()), 10)
 	} else {
@@ -754,26 +835,28 @@ function prepareForNextBatch() {
 }
 
 function processCurrentAnt() {
-	var currentAnt = population[currentAntIndex]	
-	var unrotatedView = nineVisibleSquares(currentAnt)	
-	var rotation = random(4)
-	var rotatedView = []
-	for (i=0; i<9; i++) {
-		rotatedView.push(unrotatedView[rotator[rotation][i]])
-	}
-	var response = getMove(currentAnt, rotatedView)
-	if (debug && currentAnt.player.id === 0) {
-		displayMoveInfo(currentAnt, rotatedView, response)
-	}
-	var targetCell = rotator[rotation][response.cell]
-	var x = (currentAnt.x + targetCell%3 - 1 + arenaWidth) % arenaWidth
-	var y = (currentAnt.y + Math.floor(targetCell/3) - 1 + arenaHeight) % arenaHeight
-	if (response.color) {
-		setColor(x, y, response.color)
-	} else if (response.workerType) {
-		makeWorker(x, y, response.workerType, currentAnt)
-	} else if (response.cell !== 4) {
-		moveAnt(x, y, currentAnt)
+	var currentAnt = population[currentAntIndex]
+	if (!currentAnt.player.disqualified) {
+		var unrotatedView = nineVisibleSquares(currentAnt)	
+		var rotation = random(4)
+		var rotatedView = []
+		for (i=0; i<9; i++) {
+			rotatedView.push(unrotatedView[rotator[rotation][i]])
+		}
+		var response = getMove(currentAnt, rotatedView)
+		if (debug && currentAnt.player.id === 0) {
+			displayMoveInfo(currentAnt, rotatedView, response)
+		}
+		var targetCell = rotator[rotation][response.cell]
+		var x = (currentAnt.x + targetCell%3 - 1 + arenaWidth) % arenaWidth
+		var y = (currentAnt.y + Math.floor(targetCell/3) - 1 + arenaHeight) % arenaHeight
+		if (response.color) {
+			setColor(x, y, response.color)
+		} else if (response.workerType) {
+			makeWorker(x, y, response.workerType, currentAnt, rotatedView, response)
+		} else if (response.cell !== 4) {
+			moveAnt(x, y, currentAnt, rotatedView, response)
+		}
 	}
 }
 
@@ -798,26 +881,26 @@ function setColor(x, y, color) {
 	arena[x + y*arenaWidth].color = color
 }
 
-function makeWorker(x, y, workerType, parent) {
+function makeWorker(x, y, workerType, parent, input, response) {
 	if (parent.type < 5) {
-		disqualify(player, 'A worker cannot create a new worker.')
+		disqualify(parent.player, 'A worker cannot create a new worker.', input, response)
 		return
 	}
 	if (!parent.food) {
-		disqualify(player, 'Cannot create a new worker without food.')
+		disqualify(parent.player, 'Cannot create a new worker without food.', input, response)
 		return
 	}
 	var birthCell = arena[x + y*arenaWidth]
 	if (birthCell.food) {
-		disqualify(player, 'Cannot create new worker on top of food.')
+		disqualify(parent.player, 'Cannot create new worker on top of food.', input, response)
 		return
 	}
 	if (birthCell.ant) {
 		if (parent.x === x && parent.y === y) {
-			disqualify(player, 'Cannot create new worker on own cell.')
+			disqualify(parent.player, 'Cannot create new worker on own cell.', input, response)
 			return
 		} else {
-			disqualify(player, 'Cannot create new worker on top of another ant.')
+			disqualify(parent.player, 'Cannot create new worker on top of another ant.', input, response)
 			return
 		}
 	}
@@ -844,15 +927,15 @@ function makeWorker(x, y, workerType, parent) {
 	displayGameTable()
 }
 
-function moveAnt(x, y, ant) {
+function moveAnt(x, y, ant, input, response) {
 	var departureCell = arena[ant.x + ant.y*arenaWidth]
 	var destinationCell = arena[x + y*arenaWidth]	
 	if (destinationCell.ant) {
-		disqualify(player, 'Cannot move onto another ant.')
+		disqualify(player, 'Cannot move onto another ant.', input, response)
 		return
 	}
 	if (destinationCell.food && ant.type < 5 && ant.food) {
-		disqualify(player, 'A laden worker cannot move onto food.')
+		disqualify(player, 'A laden worker cannot move onto food.', input, response)
 		return
 	}	
 	destinationCell.ant = ant
@@ -977,8 +1060,14 @@ function gameOver() {
 	abandonGame()
 }
 
-function sortLeaderboard() {	//	Sort by position, then by confidence if position equal, then by age if those equal.
+function sortLeaderboard() {	//	Sort by position, then by confidence if position equal, then by age if those equal. Disqualification overrides these.
 	leaderboardInfo.sort(function(a, b) {
+		if (a.player.disqualified > b.player.disqualified) {
+			return 1
+		}
+		if (a.player.disqualified < b.player.disqualified) {
+			return -1
+		}
 		if (a.position > b.position) {
 			return 1
 		}
@@ -1000,8 +1089,14 @@ function sortLeaderboard() {	//	Sort by position, then by confidence if position
 	})
 }
 
-function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal.
+function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal. Disqualification overrides these.
 	gameStats.sort(function(a, b) {
+		if (a.player.disqualified > b.player.disqualified) {
+			return 1
+		}
+		if (a.player.disqualified < b.player.disqualified) {
+			return -1
+		}
 		if (a.food > b.food) {
 			return -1
 		}
@@ -1101,8 +1196,8 @@ function getMove(ant, rotatedView) {
 	try {
 		var response = maskedEval(code, parameters)
 	} catch(e) {
-		var response = noMove
-		disqualify(player, e)
+		disqualify(player, e, rotatedView, response)
+		return noMove
 	}
 	time = performance.now() - time
 	if (time > permittedTime) {
@@ -1111,32 +1206,26 @@ function getMove(ant, rotatedView) {
 	player.time += time
 	player.permittedTime += permittedTime
 	if (player.time > 10000 && player.time > player.permittedTime) {
-		disqualify(player, 'Exceeded permitted time averaged over more than 10 seconds.')
+		disqualify(player, 'Exceeded permitted time averaged over more than 10 seconds.', rotatedView, response)
 		return noMove
 	}
 	if (response.color && response.workerType) {
-		disqualify(player, 'Both color and worker type specified.')
+		disqualify(player, 'Both color and worker type specified.', rotatedView, response)
 		return noMove
 	}
 	if (response.cell < 0 || response.cell > 8) {
-		disqualify(player, 'Cell out of range: ' + response.cell)
+		disqualify(player, 'Cell out of range: ' + response.cell, rotatedView, response)
 		return noMove
 	}
 	if (response.color < 0 || response.color > paletteSize) {
-		disqualify(player, 'Color out of range: ' + response.color)
+		disqualify(player, 'Color out of range: ' + response.color, rotatedView, response)
 		return noMove
 	}
 	if (response.workerType < 0 || response.workerType > 4) {
-		disqualify(player, 'Worker type out of range: ' + response.workerType)
+		disqualify(player, 'Worker type out of range: ' + response.workerType, rotatedView, response)
 		return noMove
 	}
 	return response
-}
-
-function disqualify(player, message) {
-	console.log(message)
-	console.log('    ' + player + ' DISQUALIFIED.')
-	// TODO 
 }
 
 function step() {	// Step all ants up to the last one in the population.
@@ -1223,6 +1312,7 @@ function createPlayers(answers) {
 			var player = {}
 			player.id = answer.answer_id
 			player.included = true
+			player.disqualified = false
 			player.code = decode(codeMatch[1])
 			
 			player.code = '' +

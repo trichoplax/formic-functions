@@ -1,101 +1,111 @@
 <head>
-  <meta charset="UTF-8">
-  <link rel='stylesheet' type='text/css' href='ant-qoth.css'>
-  <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>
-  <script src='ant-qoth.js'></script>
+	<meta charset="UTF-8">
+	<link rel='stylesheet' type='text/css' href='ant-qoth.css'>
+	<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>
+	<script src='ant-qoth.js'></script>
 </head>
 <body>
-  <h1>Formic Functions - Ant Queen of the Hill Contest</h1>
-  <div id='top_hidden_area'>
-    <div>
-      <button id='run_single_game' disabled='true'><h2>Run single game</h2></button>
-      <button id='run_ongoing_tournament' disabled='true'><h2>Run ongoing tournament</h2></button>
-    </div>
-    
-    <div>
-      <div id='no_display_area'><button id='no_display'>No display</button></div>
-      <div id='delay_area'>Delay <input id='delay' type='number' min='0' max='999' value='150'>ms</div>
-      <div id='controls_area'>
-        <button id='play'>Play</button>
-        <button id='pause'>Pause</button>
-        <button id='step'>Step (S)</button>
-        <button id='step_ant'>Step ant (A)</button>
-      </div>
-      <div id='max_area'>Max <input id='max_players' type='number' min='1' max='99' value='16'></input> players</div>
-      <div id='fit_area'><button id='fit_canvas'>Fit canvas to width</button></div>
-    </div>
-    
-    <canvas id='display_canvas'></canvas>
-  </div>
-  
-  <button id='restore_display'>Restore display</button>
+	<h1>Formic Functions - Ant Queen of the Hill Contest</h1>
+	<div id='top_hidden_area'>
+		<div>
+			<button id='run_single_game' disabled='true'><h2>Run single game</h2></button>
+			<button id='run_ongoing_tournament' disabled='true'><h2>Run ongoing tournament</h2></button>
+		</div>
+
+		<div>
+			<div id='no_display_area'><button id='no_display'>No display</button></div>
+			<div id='delay_area'>Delay <input id='delay' type='number' min='0' max='999' value='150'>ms</div>
+			<div id='controls_area'>
+				<button id='play'>Play</button>
+				<button id='pause'>Pause</button>
+				<button id='step'>Step (S)</button>
+				<button id='step_ant'>Step ant (A)</button>
+			</div>
+			<div id='max_area'>Max <input id='max_players' type='number' min='1' max='99' value='16'></input> players</div>
+			<div id='fit_area'><button id='fit_canvas'>Fit canvas to width</button></div>
+		</div>
+
+		<canvas id='display_canvas'></canvas>
+	</div>
+
+	<button id='restore_display'>Restore display</button>
 
 	<div>
-	  <div id='abandon_game_area'><button id='abandon_game'>Abandon current game</button></div>
-    <div id='completed_moves_area'>Number of moves not yet available</div>
-	  <div id='reset_leaderboard_area'><button id='reset_leaderboard'>Reset tournament leaderboard</button></div>
-  </div>
-	
-  <table>
-    <caption>Current Game</caption>
-    <thead>
-      <tr>
-        <th rowspan='2' colspan='2'>Player</th>
-        <th colspan='4'>Workers</th>
-        <th rowspan='2'>Food</th>
-      </tr>
-      <tr>
-        <th>Type 1</th>
-        <th>Type 2</th>
-        <th>Type 3</th>
-        <th>Type 4</th>
-      </tr>
-    </thead>
-    <tbody id='current_game_body'>
-    </tbody>
-  </table>
-  
-  <div id='game_counter'>0 games played.</div>
-  
-  <div id='loaded_at'><i>Players not yet loaded from contest post.</i></div>
-  
-  <table>
-    <caption>Tournament Leaderboard</caption>
-    <thead>
-      <tr>
-        <th>Position</th>
-        <th colspan='2'>Player</th>
-        <th>Score</th>
-        <th>Confidence of position (0-1)</th>
-        <th>Included</th>
-      </tr>
-    </thead>
-    <tbody id='leaderboard_body'>
-    </tbody>
-  </table>
-  
-  <div id='bottom_hidden_area'>
-    <div>
-    	Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
-    </div>
-    <div>
-	    Logging to console for debugging the new challenger: <input id='debug' type='checkbox'></input>
-    </div>
-    <div>
-    	Seeded random numbers (same outcome every game for debugging): <input id='seeded_random' type='checkbox'></input> Seed: <input id='seed' type='number' value='1' min='1' max='4294967295'></input>
-    </div>
-    <div>
-    	Squares per side in zoomed area: <input id='squares_per_side' type='number' value='50' min='3' max='100'></input>
-    </div>
-    <br>
-    Available color palettes to help with variation in color vision:
-    <div class='dropdown'>
-		<img id='selected_palette' class='palette_row_image'></img>
-		<div id='palette_dropdown_options' class='dropdown_content'>
-		</div>
+		<div id='abandon_game_area'><button id='abandon_game'>Abandon current game</button></div>
+		<div id='completed_moves_area'>Number of moves not yet available</div>
+		<div id='reset_leaderboard_area'><button id='reset_leaderboard'>Reset tournament leaderboard</button></div>
 	</div>
-    <h3 id='new_challenger_heading'>New challenger</h3>
-    <textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - enter function body to be tested here)' rows='30' spellcheck='false'></textarea>
-  </div>
+	
+	<table id='current_game_table'>
+		<caption>Current Game</caption>
+		<thead>
+			<tr>
+				<th rowspan='2' colspan='2'>Player
+				<th colspan='4'>Workers
+				<th rowspan='2'>Food
+			<tr>
+				<th>Type 1
+				<th>Type 2
+				<th>Type 3
+				<th>Type 4
+		</thead>
+		<tbody id='current_game_body'>
+		</tbody>
+	</table>
+
+	<div id='game_counter'>0 games played.</div>
+
+	<div id='loaded_at'><i>Players not yet loaded from contest post.</i></div>
+
+	<table>
+		<caption>Tournament Leaderboard</caption>
+		<thead>
+			<tr>
+				<th>Position
+				<th colspan='2'>Player
+				<th>Score
+				<th>Confidence of position (0-1)
+				<th>Included
+		</thead>
+		<tbody id='leaderboard_body'>
+		</tbody>
+	</table>
+
+	<table id='disqualified_table'>
+		<caption>Disqualified Players</caption>
+		<thead>
+			<tr>
+				<th>Restore
+				<th colspan='2'>Player
+				<th>Reason
+				<th>Input
+				<th>Response
+		</thead>
+		<tbody id='disqualified_body'>
+		</tbody>
+	</table>
+
+	<div id='bottom_hidden_area'>
+		<div>
+			Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
+		</div>
+		<div>
+			Logging to console for debugging the new challenger: <input id='debug' type='checkbox'></input>
+		</div>
+		<div>
+			Seeded random numbers (same outcome every game for debugging): <input id='seeded_random' type='checkbox'></input> Seed: <input id='seed' type='number' value='1' min='1' max='4294967295'></input>
+		</div>
+		<div>
+			Squares per side in zoomed area: <input id='squares_per_side' type='number' value='50' min='3' max='100'></input>
+		</div>
+		<br>
+		Available color palettes to help with variation in color vision:
+		<div class='dropdown'>
+			<img id='selected_palette' class='palette_row_image'></img>
+			<div id='palette_dropdown_options' class='dropdown_content'></div>
+		</div>
+		<h3 id='new_challenger_heading'>New challenger</h3>
+		<textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - enter function body to be tested here)' rows='30' spellcheck='false'></textarea>
+	</div>
 
 </body>

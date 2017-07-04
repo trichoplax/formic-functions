@@ -58,6 +58,12 @@ h1, h3 {
 	image-rendering: crisp-edges;
 	-ms-interpolation-mode: nearest-neighbor;
 }
+.greyed_row {
+	opacity: 0.6;
+}
+.greyed_row:hover {
+	opacity: 1;
+}
 #delay, #permitted_time_override {
 	width: 5em;
 }
