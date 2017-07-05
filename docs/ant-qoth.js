@@ -45,7 +45,7 @@ function setGlobals() {
 	zoomOnLeft = true
 	timeoutID = 0
 	permittedTime = parseInt($('#permitted_time_override').val(), 10)
-	noMove = {cell: 4, color: 0, workerType: 0}
+	noMove = {cell: 4, color: 0, workerType: 0, dummy_move_as_player_disqualified__See_disqualified_table: true}
 	arenaWidth = 2500
 	arenaHeight = 1000
 	arenaArea = arenaWidth * arenaHeight
@@ -235,16 +235,16 @@ function colorPlayers() {
 
 /* HELPERS */
 
-function maskedEval(functionBody, params) //thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
-{
-    var mask = {}
-    for (var i in this)
-        mask[i] = undefined
-    for (var i in params) {
-        if (params.hasOwnProperty(i))
-            mask[i] = params[i]
-    }
-    return (new Function('with(this) { ' + functionBody + ';}')).call(mask)
+function maskedEval(functionBody, params) {	//thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
+	var mask = {}
+	for (var i in this) {
+		mask[i] = undefined
+	}
+	for (var i in params) {
+		if (params.hasOwnProperty(i))
+		mask[i] = params[i]
+	}
+	return (new Function('with(this) { ' + functionBody + ';}')).call(mask)
 }
 
 function decode(html) {
@@ -283,6 +283,17 @@ function shuffle(array) {
 			array[target] = temp
 		}
 	}
+}
+
+function binomial(n, k) {
+	if (2*k > n) {
+		return binomial(n, n-k)
+	}
+	b = 1
+	for (i=0; i<k; i++) {
+		b *= (n-i) / (k-i)
+	}
+	return b
 }
 
 /* INTERFACE */
@@ -526,7 +537,7 @@ function displayLeaderboard() {
 		var checkboxId = '#included_' + id
 		$(checkboxId).prop('checked', row.player.included)
 		$(checkboxId).prop('disabled', row.player.disqualified)
-		var player = players[players.findIndex(function(player){  // TODO fix this mess
+		var player = players[players.findIndex(function(player){	// TODO fix this mess
 			return player.id === id
 		})]
 		$(checkboxId).change(function() {
@@ -537,7 +548,7 @@ function displayLeaderboard() {
 
 function disqualify(player, reason, input, response) {
 	console.log(reason)
-	console.log('    DISQUALIFIED: ' + player)
+	console.log('\tDISQUALIFIED: ' + player)
 	var row = {
 		player: player,
 		reason: reason,
@@ -873,8 +884,8 @@ function displayMoveInfo(ant, rotatedView, response) {
 		}
 	}
 	console.log(carrying + identity + ': location (' + ant.x + ', ' + ant.y + '):')
-	console.log('  Received: ' + JSON.stringify(rotatedView))
-	console.log('  Response: ' + JSON.stringify(response))
+	console.log('Received: ' + JSON.stringify(rotatedView))
+	console.log('Response: ' + JSON.stringify(response))
 }
 
 function setColor(x, y, color) {
@@ -1294,35 +1305,37 @@ function atLeastOneVisibleAnt() {
 
 function loadPlayers() {
 	loadAnswers(site, qid, function(answers) {
-        createPlayers(answers)
+		createPlayers(answers)
 	})
 	showLoadedTime()
 }
 
 function loadAnswers(site, qid, onFinish) {
-    var answers = []
-    function loadPage() {
-        $.get(
-            'https://api.stackexchange.com/2.2/questions/' +
-            qid.toString() + '/answers?page=' +
-            (page++).toString() +
-            '&pagesize=100&order=asc&sort=creation&site=' +
-            site + '&filter=!YOKGPOBC5Yad4mOOn8Z4WcAE6q', readPage)
-    }
-    function readPage(data) {
-        answers = answers.concat(data.items)
-        if (data.hasMore)
-            loadPage()
-        else
-            onFinish(answers)
-    }
-    var page = 1
-    loadPage(page, readPage)
+	var answers = []
+	function loadPage() {
+		$.get(
+			'https://api.stackexchange.com/2.2/questions/' +
+			qid.toString() + '/answers?page=' +
+			(page++).toString() +
+			'&pagesize=100&order=asc&sort=creation&site=' +
+			site + '&filter=!YOKGPOBC5Yad4mOOn8Z4WcAE6q', readPage
+		)
+	}
+	function readPage(data) {
+		answers = answers.concat(data.items)
+		if (data.hasMore) {
+			loadPage()
+		} else {
+			onFinish(answers)
+		}
+	}
+	var page = 1
+	loadPage(page, readPage)
 }
 
 function createPlayers(answers) {
-    var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
-    var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
+	var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
+	var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
 	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
 	players.push(testPlayer)
