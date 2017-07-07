@@ -44,6 +44,7 @@ function setGlobals() {
 	zoomedAreaCentreY = 0
 	zoomOnLeft = true
 	timeoutID = 0
+	confidenceThreshold = parseInt($('#confidence_threshold').val(), 10) / 100
 	permittedTime = parseInt($('#permitted_time_override').val(), 10)
 	noMove = {cell: 4, color: 0, workerType: 0, dummy_move_as_player_disqualified__See_disqualified_table: true}
 	arenaWidth = 2500
@@ -154,8 +155,8 @@ function initialiseSupplementaryCanvases() {
 	zoomCtx.imageSmoothingEnabled = false
 	
 	displayCanvas = document.getElementById('display_canvas')
-	displayCanvas.width = 1250
-	displayCanvas.height = 500
+	displayCanvas.width = arenaWidth / 2
+	displayCanvas.height = arenaHeight / 2
 	displayCtx = displayCanvas.getContext('2d')
 	
 	var paletteCanvas, paletteCtx, paletteImage
@@ -289,11 +290,21 @@ function binomial(n, k) {
 	if (2*k > n) {
 		return binomial(n, n-k)
 	}
-	b = 1
+	var i
+	var b = 1
 	for (i=0; i<k; i++) {
 		b *= (n-i) / (k-i)
 	}
 	return b
+}
+
+function binomialSum(n, x) {
+	var i
+	var sum = 0
+	for (i=0; i<=x; i++) {
+		sum += binomial(n, i)
+	}
+	return sum
 }
 
 /* INTERFACE */
@@ -447,6 +458,9 @@ function initialiseInterface() {
 	})
 	$('#current_game_table').hide()
 	$('#disqualified_table').hide()
+	$('#confidence_threshold').change(function() {
+		confidenceThreshold = parseInt($('#confidence_threshold').val(), 10) / 100
+	})
 	$('#permitted_time_override').change(function() {
 		permittedTime = parseInt($('#permitted_time_override').val(), 10)
 	})
@@ -493,7 +507,7 @@ function displayGameTable() {
 	$('#current_game_body').html(content)
 }
 
-function initialiseLeaderboard() {
+function initialiseLeaderboard() {	// TODO rewrite to store all this in player so leaderboardInfo is no longer required.
 	gamesPlayed = 0
 	$('#game_counter').html('0 games played.')
 	players.forEach(function(player) {
@@ -507,6 +521,9 @@ function initialiseLeaderboard() {
 			confidence: 0
 		}
 		leaderboardInfo.push(row)
+		players.forEach(function(otherPlayer) {
+			player.individualVictories[otherPlayer] = 0
+		})
 	})
 	displayLeaderboard()
 }
@@ -516,19 +533,18 @@ function displayLeaderboard() {
 	leaderboardInfo.forEach(function(row) {
 		var checkboxId = 'included_' + row.id
 		if (row.player.disqualified) {
-			content += '<tr class="greyed_row"><td>' + row.position
-			content += '<td><a href="#disqualified_table">DISQUALIFIED: </a>' + row.title
+			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED</a>'
 		} else {
 			content += '<tr><td>' + row.position
-			if (row.player.id === 0) {
-				content += '<td><a href="' + row.link + '">' + row.title + '</a>'
-			} else {
-				content += '<td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
-			}
+		}
+		if (row.player.id === 0) {
+			content += '<td><a href="' + row.link + '">' + row.title + '</a>'
+		} else {
+			content += '<td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
 		}
 		content += '<td>' + row.player.imageTags[paletteChoice] +
 			'<td>' + row.score +
-			'<td>' + row.confidence +
+			'<td>' + Math.floor(row.confidence*100) + '%' +
 			'<td><input id=' + checkboxId + ' type=checkbox>'
 	})
 	$('#leaderboard_body').html(content)
@@ -548,7 +564,7 @@ function displayLeaderboard() {
 
 function disqualify(player, reason, input, response) {
 	console.log(reason)
-	console.log('\tDISQUALIFIED: ' + player)
+	console.log('\tDISQUALIFIED: ' + player.title)
 	var row = {
 		player: player,
 		reason: reason,
@@ -942,11 +958,11 @@ function moveAnt(x, y, ant, input, response) {
 	var departureCell = arena[ant.x + ant.y*arenaWidth]
 	var destinationCell = arena[x + y*arenaWidth]	
 	if (destinationCell.ant) {
-		disqualify(player, 'Cannot move onto another ant.', input, response)
+		disqualify(ant.player, 'Cannot move onto another ant.', input, response)
 		return
 	}
 	if (destinationCell.food && ant.type < 5 && ant.food) {
-		disqualify(player, 'A laden worker cannot move onto food.', input, response)
+		disqualify(ant.player, 'A laden worker cannot move onto food.', input, response)
 		return
 	}	
 	destinationCell.ant = ant
@@ -1054,12 +1070,18 @@ function passFoodWorker(ant) {
 function gameOver() {
 	var id, score
 	gameStats.forEach(function(row) {
-		id = row.id
-		score = playersWithLessFood(id)
-		addScoreToLeaderboard(id, score)
+		if (!row.player.disqualified) {
+			gameStats.forEach(function(otherRow) {
+				if (otherRow !== row && row.food > otherRow.food) {
+					row.player.individualVictories[otherRow.player]++
+				}
+			})
+			id = row.id
+			score = playersWithLessFood(id)
+			addScoreToLeaderboard(id, score)
+		}
 	})
 	updateLeaderboardPositions()
-	sortLeaderboard()
 	$('#reset_leaderboard').prop('disabled', false)
 	displayLeaderboard()
 	gamesPlayed++
@@ -1071,7 +1093,7 @@ function gameOver() {
 	abandonGame()
 }
 
-function sortLeaderboard() {	//	Sort by position, then by confidence if position equal, then by age if those equal. Disqualification overrides these.
+function sortLeaderboard() {	//	Sort by score, then by confidence if score equal, then by age if those equal. Disqualification overrides these.
 	leaderboardInfo.sort(function(a, b) {
 		if (a.player.disqualified > b.player.disqualified) {
 			return 1
@@ -1079,11 +1101,11 @@ function sortLeaderboard() {	//	Sort by position, then by confidence if position
 		if (a.player.disqualified < b.player.disqualified) {
 			return -1
 		}
-		if (a.position > b.position) {
-			return 1
-		}
-		if (a.position < b.position) {
+		if (a.score > b.score) {
 			return -1
+		}
+		if (a.score < b.score) {
+			return 1
 		}
 		if (a.confidence > b.confidence) {
 			return -1
@@ -1130,9 +1152,77 @@ function sortGameStats() {	//	Sort by food, then by number of workers if food eq
 }
 
 function updateLeaderboardPositions() {
+	updateConfidences()
 	leaderboardInfo.forEach(function(row) {
-		row.position = playersWithHigherScore(row.id, row.score) + 1		
+		row.naivePosition = playersWithHigherScore(row.id, row.score) + 1
+		row.position = row.naivePosition	
 	})
+	sortLeaderboard()
+	leaderboardInfo.forEach(function(row) {
+		if (!row.player.disqualified && row.naivePosition === 1 || blockAboveIsConfident(row.naivePosition)) {
+			row.position = row.naivePosition
+		} else {
+			row.position = positionOfBlockAbove(row.naivePosition)
+		}
+	})
+}
+
+function blockAboveIsConfident(naivePosition) {
+	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
+	var confident = true
+	leaderboardInfo.forEach(function(row) {
+		if (row.naivePosition === previousNaivePosition && row.confidence < confidenceThreshold) {
+			confident = false
+		}
+	})
+	return confident
+}
+
+function positionOfBlockAbove(naivePosition) {
+	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
+	var position = 0
+	leaderboardInfo.forEach(function(row) {
+		if (row.naivePosition === previousNaivePosition) {
+			position = row.position
+		}
+	})
+	return position
+}
+
+function naivePositionOfBlockAbove(naivePosition) {
+	var previousNaivePosition = 0
+	leaderboardInfo.forEach(function(row) {
+		if (row.naivePosition > previousNaivePosition && row.naivePosition < naivePosition) {
+			previousNaivePosition = row.naivePosition
+		}
+	})
+	return previousNaivePosition
+}
+
+function updateConfidences() {
+	leaderboardInfo.forEach(function(row) {
+		if (row.player.disqualified) {
+			row.confidence = 0
+		} else {
+			row.confidence = 1
+			leaderboardInfo.forEach(function(otherRow) {
+				if (!otherRow.player.disqualified && row !== otherRow && otherRow.score < row.score) {
+					candidate = individualConfidence(row, otherRow)
+					if (candidate < row.confidence) {
+						row.confidence = candidate
+					}
+				}
+			})
+		}
+	})
+}
+
+function individualConfidence(row, otherRow) {
+	var myWins = row.player.individualVictories[otherRow.player]
+	var otherWins = otherRow.player.individualVictories[row.player]
+	var totalWins = myWins + otherWins
+	var probability = Math.pow(0.5, totalWins) * binomialSum(totalWins, otherWins)
+	return 1 - probability
 }
 
 function playersWithHigherScore(id, score) {
@@ -1154,7 +1244,7 @@ function playersWithLessFood(id) {
 		}
 	})
 	gameStats.forEach(function(row) {
-		if (row.food < playerFood) {
+		if (row.food < playerFood && !row.player.disqualified) {
 			count++
 		}
 	})
@@ -1210,21 +1300,18 @@ function getMove(ant, rotatedView) {
 		disqualify(player, e, rotatedView, response)
 		return noMove
 	}
-	elapsedTime = performance.now() - time
-	if (player.id === 0 && debug) {
-		console.log('Responded in ' + elapsedTime + ' ms.')
-	}
-	if (elapsedTime > permittedTime) {
-		console.log(player + ': Exceeded permitted time of ' + permittedTime + 'ms: ' + elapsedTime)
-	}
+	var elapsedTime = performance.now() - time
 	player.elapsedTime += elapsedTime
 	player.permittedTime += permittedTime
-	if (player.elapsedTime > 10000 && player.elapsedTime > player.permittedTime) {
-		disqualify(player, 'Exceeded permitted time averaged over more than 10 seconds.', rotatedView, response)
-		return noMove
+	if (player.id === 0 && debug) {
+		console.log('Responded in ' + elapsedTime + ' ms.')
+		if (elapsedTime > permittedTime) {
+			console.log(player.title + ': Exceeded permitted time of ' + permittedTime + 'ms.')
+		}
+		console.log('________________________')
 	}
-	if (response.color && response.workerType) {
-		disqualify(player, 'Both color and worker type specified.', rotatedView, response)
+	if (typeof response === 'undefined') {
+		disqualify(player, 'Response undefined.', rotatedView, response)
 		return noMove
 	}
 	if (typeof response.cell === 'undefined') {
@@ -1258,6 +1345,16 @@ function getMove(ant, rotatedView) {
 			disqualify(player, 'Worker type out of range: ' + response.workerType, rotatedView, response)
 			return noMove
 		}
+	}
+	if (typeof response.color !== 'undefined' && typeof response.workerType !== 'undefined') {
+		if (response.color && response.workerType) {
+			disqualify(player, 'Both color and worker type specified.', rotatedView, response)
+			return noMove
+		}
+	}
+	if (player.elapsedTime > 10000 && player.elapsedTime > player.permittedTime) {
+		disqualify(player, 'Exceeded permitted time averaged over more than 10 seconds.', rotatedView, response)
+		return noMove
 	}
 	return response
 }
@@ -1337,7 +1434,7 @@ function createPlayers(answers) {
 	var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
 	var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
-	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
+	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER', individualVictories: {} }
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -1377,6 +1474,7 @@ function createPlayers(answers) {
 			
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,20) + ' - ' + user
+			player.individualVictories = {}
 			players.push(player)
 		}		
 	})

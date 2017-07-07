@@ -64,7 +64,7 @@
 				<th>Position
 				<th colspan='2'>Player
 				<th>Score
-				<th>Confidence of position (0-1)
+				<th>Confidence of not dropping
 				<th>Included
 		</thead>
 		<tbody id='leaderboard_body'>
@@ -86,6 +86,9 @@
 	</table>
 
 	<div id='bottom_hidden_area'>
+		<div>
+			Confidence threshold for determining whether players are in joint n<sup>th</sup> place: <input id='confidence_threshold' type='number' value='95' min='1' max='99'></input>%
+		</div>
 		<div>
 			Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
 		</div>

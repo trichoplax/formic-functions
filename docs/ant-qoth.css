@@ -64,10 +64,10 @@ h1, h3 {
 .greyed_row:hover {
 	opacity: 1;
 }
-#delay, #permitted_time_override {
+#delay, #permitted_time_override, #squares_per_side {
 	width: 5em;
 }
-#max_players {
+#max_players, #confidence_threshold {
 	width: 4em;
 }
 #controls_area, #no_display_area, #delay_area, #max_area, #fit_area, #abandon_game_area, #reset_leaderboard_area, #completed_moves_area {
