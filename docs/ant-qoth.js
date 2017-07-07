@@ -498,11 +498,11 @@ function displayGameTable() {
 			content += '<tr><td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
 		}
 		content += '<td>' + row.player.imageTags[paletteChoice] +
+			'<td>' + row.food +
 			'<td>' + row.type1 +
 			'<td>' + row.type2 +
 			'<td>' + row.type3 +
-			'<td>' + row.type4 +
-			'<td>' + row.food
+			'<td>' + row.type4
 	})
 	$('#current_game_body').html(content)
 }
