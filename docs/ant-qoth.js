@@ -84,7 +84,6 @@ function initialiseColorPalettes() {
 	arenaColors = []
 	
 	arenaColor.tile = [
-		null,
 		[255, 255, 255],
 		[255, 255, 0],
 		[255, 0, 255],
@@ -94,13 +93,12 @@ function initialiseColorPalettes() {
 		[0, 0, 255],
 		[0, 0, 0]
 	]
-	arenaColor.food = arenaColor.tile[8]
-	arenaColor.ant = arenaColor.tile[8]
+	arenaColor.food = arenaColor.tile[7]
+	arenaColor.ant = arenaColor.tile[7]
 	arenaColors.push(arenaColor)
 	
 	arenaColor = {}
 	arenaColor.tile = [
-		null,
 		[255, 255, 255],
 		[218, 218, 218],
 		[181, 181, 181],
@@ -110,13 +108,12 @@ function initialiseColorPalettes() {
 		[36, 36, 36],
 		[0, 0, 0]
 	]
-	arenaColor.food = arenaColor.tile[8]
-	arenaColor.ant = arenaColor.tile[8]
+	arenaColor.food = arenaColor.tile[7]
+	arenaColor.ant = arenaColor.tile[7]
 	arenaColors.push(arenaColor)
 	
 	arenaColor = {}
 	arenaColor.tile = [
-		null,
 		[255, 255, 255],
 		[204, 121, 167],
 		[213, 94, 0],
@@ -126,8 +123,8 @@ function initialiseColorPalettes() {
 		[86, 180, 233],
 		[0, 0, 0]
 	]
-	arenaColor.food = arenaColor.tile[8]
-	arenaColor.ant = arenaColor.tile[8]
+	arenaColor.food = arenaColor.tile[7]
+	arenaColor.ant = arenaColor.tile[7]
 	arenaColors.push(arenaColor)
 }
 
@@ -164,11 +161,11 @@ function initialiseSupplementaryCanvases() {
 	paletteContexts = []
 	for (i=0; i<arenaColors.length; i++) {
 		paletteCanvas = document.createElement('canvas')
-		paletteCanvas.width = 9
+		paletteCanvas.width = paletteSize
 		paletteCanvas.height = 1
 		paletteCtx = paletteCanvas.getContext('2d')
 		paletteImage = paletteCtx.createImageData(paletteCanvas.width, paletteCanvas.height)
-		for (j=1; j<paletteSize+1; j++) {
+		for (j=0; j<paletteSize; j++) {
 			for (var c=0; c<3; c++) {
 				paletteImage.data[j*4 + c] = arenaColors[i].tile[j][c]
 			}
@@ -223,7 +220,7 @@ function colorPlayers() {
 			for (y=0; y<2; y++) {
 				for (x=0; x<2; x++) {
 					color = playerColorNumbers[count]
-					context.drawImage(paletteCanvas, color, 0, 1, 1, x, y, 1, 1)
+					context.drawImage(paletteCanvas, color-1, 0, 1, 1, x, y, 1, 1)
 					count++
 				}
 			}
@@ -640,7 +637,7 @@ function fillArenaCanvas() {
 				}			
 			} else {
 				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].tile[cell.color][i]
+					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].tile[cell.color-1][i]
 				}			
 			}
 		}
@@ -669,7 +666,7 @@ function fillZoomCanvas() {
 }
 
 function paintTile(x, y, color) {
-	zoomCtx.drawImage(paletteCanvases[paletteChoice], color, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
+	zoomCtx.drawImage(paletteCanvases[paletteChoice], color-1, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
 }
 
 function paintFood(x, y) {

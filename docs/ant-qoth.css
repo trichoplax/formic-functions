@@ -52,6 +52,7 @@ h1, h3 {
 .palette_row_image {
 	width: 16em;
 	height: 2em;
+	border: 0.1em solid black;
 	image-rendering: -moz-crisp-edges;	
 	image-rendering: -o-crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
