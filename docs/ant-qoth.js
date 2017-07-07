@@ -156,9 +156,10 @@ function initialiseSupplementaryCanvases() {
 	displayCanvas.height = arenaHeight / 2
 	displayCtx = displayCanvas.getContext('2d')
 	
-	var paletteCanvas, paletteCtx, paletteImage
+	var paletteCanvas, paletteCtx, paletteImage, enlargedPaletteCanvas, enlargedPaletteCtx
 	paletteCanvases = []
 	paletteContexts = []
+	enlargedPaletteCanvases = []
 	for (i=0; i<arenaColors.length; i++) {
 		paletteCanvas = document.createElement('canvas')
 		paletteCanvas.width = paletteSize
@@ -174,6 +175,13 @@ function initialiseSupplementaryCanvases() {
 		paletteCtx.putImageData(paletteImage, 0, 0)
 		paletteCanvases.push(paletteCanvas)
 		paletteContexts.push(paletteCtx)
+		enlargedPaletteCanvas = document.createElement('canvas')
+		enlargedPaletteCanvas.width = 20 * paletteCanvas.width
+		enlargedPaletteCanvas.height = 20 * paletteCanvas.height
+		enlargedPaletteCtx = enlargedPaletteCanvas.getContext('2d')
+		enlargedPaletteCtx.imageSmoothingEnabled = false
+		enlargedPaletteCtx.drawImage(paletteCanvas, 0, 0, paletteCanvas.width, paletteCanvas.height, 0, 0, enlargedPaletteCanvas.width, enlargedPaletteCanvas.height)
+		enlargedPaletteCanvases.push(enlargedPaletteCanvas)
 	}
 	initialisePaletteDropdown()
 }
@@ -181,7 +189,7 @@ function initialiseSupplementaryCanvases() {
 function initialisePaletteDropdown() {
 	var canvas, imageSource, i, content=''
 	paletteImageSources = []
-	paletteCanvases.forEach(function(canvas) {
+	enlargedPaletteCanvases.forEach(function(canvas) {
 		imageSource = canvas.toDataURL()
 		paletteImageSources.push(imageSource)
 	})	
@@ -204,7 +212,7 @@ function setNewPalette(selectedDropdownRow) {
 
 function colorPlayers() {
 	random = seededRandomInitialiser(1)
-	var playerColorNumbers, canvas, context, count, color, x, y, imageSource
+	var playerColorNumbers, canvas, context, count, color, x, y, enlargedAvatarCanvas, enlargedAvatarCtx, imageSource
 	var colors = [1, 2, 3, 4, 5, 6, 7, 8]
 	players.forEach(function(player) {
 		player.avatars = []
@@ -225,7 +233,13 @@ function colorPlayers() {
 				}
 			}
 			player.avatars.push(canvas)
-			imageSource = canvas.toDataURL()
+			enlargedAvatarCanvas = document.createElement('canvas')
+			enlargedAvatarCanvas.width = 20
+			enlargedAvatarCanvas.height = 20
+			enlargedAvatarCtx = enlargedAvatarCanvas.getContext('2d')
+			enlargedAvatarCtx.imageSmoothingEnabled = false
+			enlargedAvatarCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, enlargedAvatarCanvas.width, enlargedAvatarCanvas.height)			
+			imageSource = enlargedAvatarCanvas.toDataURL()
 			player.imageTags.push('<img src=\'' + imageSource + '\' class=\'tableImage\'></img>')
 		})
 	})
