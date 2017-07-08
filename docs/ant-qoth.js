@@ -150,6 +150,7 @@ function initialiseSupplementaryCanvases() {
 		zoomImage.data[i*4 + 3] = 255
 	}
 	zoomCtx.imageSmoothingEnabled = false
+	zoomCtx.msImageSmoothingEnabled = false
 	
 	displayCanvas = document.getElementById('display_canvas')
 	displayCanvas.width = arenaWidth / 2
@@ -180,6 +181,7 @@ function initialiseSupplementaryCanvases() {
 		enlargedPaletteCanvas.height = 20 * paletteCanvas.height
 		enlargedPaletteCtx = enlargedPaletteCanvas.getContext('2d')
 		enlargedPaletteCtx.imageSmoothingEnabled = false
+		enlargedPaletteCtx.msImageSmoothingEnabled = false
 		enlargedPaletteCtx.drawImage(paletteCanvas, 0, 0, paletteCanvas.width, paletteCanvas.height, 0, 0, enlargedPaletteCanvas.width, enlargedPaletteCanvas.height)
 		enlargedPaletteCanvases.push(enlargedPaletteCanvas)
 	}
@@ -238,6 +240,7 @@ function colorPlayers() {
 			enlargedAvatarCanvas.height = 20
 			enlargedAvatarCtx = enlargedAvatarCanvas.getContext('2d')
 			enlargedAvatarCtx.imageSmoothingEnabled = false
+			enlargedAvatarCtx.msImageSmoothingEnabled = false
 			enlargedAvatarCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, enlargedAvatarCanvas.width, enlargedAvatarCanvas.height)			
 			imageSource = enlargedAvatarCanvas.toDataURL()
 			player.imageTags.push('<img src=\'' + imageSource + '\' class=\'tableImage\'></img>')
