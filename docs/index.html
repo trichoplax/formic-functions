@@ -21,14 +21,14 @@
 				<button id='step'>Step (S)</button>
 				<button id='step_ant'>Step ant (A)</button>
 			</div>
-			<div id='max_area'>Max <input id='max_players' type='number' min='1' max='99' value='16'></input> players</div>
+			<div id='squares_per_side_area'><input id='squares_per_side' type='number' value='50' min='5' max='100'> squares per side in zoom</input></div>
 			<div id='fit_area'><button id='fit_canvas'>Fit canvas to width</button></div>
 		</div>
 
 		<canvas id='display_canvas'></canvas>
 	</div>
 
-	<button id='restore_display'>Restore display</button>
+	<button id='restore_display'><h2>Restore display</h2></button>
 
 	<div>
 		<div id='abandon_game_area'><button id='abandon_game'>Abandon current game</button></div>
@@ -85,28 +85,28 @@
 		</tbody>
 	</table>
 
-	<div id='bottom_hidden_area'>
-		<div>
-			Confidence threshold for determining whether players are in joint n<sup>th</sup> place: <input id='confidence_threshold' type='number' value='95' min='1' max='99'></input>%
-		</div>
-		<div>
-			Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
-		</div>
-		<div>
-			Logging to console for debugging the new challenger: <input id='debug' type='checkbox'></input>
-		</div>
-		<div>
-			Seeded random numbers (same outcome every game for debugging): <input id='seeded_random' type='checkbox'></input> Seed: <input id='seed' type='number' value='1' min='1' max='4294967295'></input>
-		</div>
-		<div>
-			Squares per side in zoomed area: <input id='squares_per_side' type='number' value='50' min='3' max='100'></input>
-		</div>
-		<br>
-		Available color palettes to help with variation in color vision:
-		<div class='dropdown'>
-			<img id='selected_palette' class='palette_row_image'></img>
-			<div id='palette_dropdown_options' class='dropdown_content'></div>
-		</div>
+	<div>
+		Max <input id='max_players' type='number' min='1' max='99' value='16'></input> players
+	</div>
+	<div>
+		Confidence threshold for determining whether players are in joint n<sup>th</sup> place: <input id='confidence_threshold' type='number' value='95' min='1' max='99'></input>%
+	</div>
+	<div>
+		Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
+	</div>
+	<div>
+		Logging to console for debugging the new challenger: <input id='debug' type='checkbox'></input>
+	</div>
+	<div>
+		Seeded random numbers (same outcome every game for debugging): <input id='seeded_random' type='checkbox'></input> Seed: <input id='seed' type='number' value='1' min='1' max='4294967295'></input>
+	</div>
+	<br>
+	Available color palettes to help with variation in color vision:
+	<div class='dropdown'>
+		<img id='selected_palette' class='palette_row_image'></img>
+		<div id='palette_dropdown_options' class='dropdown_content'></div>
+	</div>	
+	<div>
 		<h3 id='new_challenger_heading'>New challenger</h3>
 		<textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - enter function body to be tested here)' rows='30' spellcheck='false'></textarea>
 	</div>

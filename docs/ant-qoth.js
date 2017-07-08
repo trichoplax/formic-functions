@@ -379,9 +379,6 @@ function initialiseInterface() {
 	$('#no_display').prop('disabled', true)
 	$('#no_display').click(function() {
 		$('#top_hidden_area').hide(300)
-		$('#bottom_hidden_area').hide(300)
-		$('#abandon_game').hide(300)
-		$('#reset_leaderboard').hide(300)
 		$('#restore_display').show(300)
 		display = false
 		continuousMoves = true
@@ -453,9 +450,6 @@ function initialiseInterface() {
 	$('#restore_display').click(function() {
 		$('#restore_display').hide(300)
 		$('#top_hidden_area').show(300)
-		$('#bottom_hidden_area').show(300)
-		$('#abandon_game').show(300)
-		$('#reset_leaderboard').show(300)
 		display = true
 		batchSize = 1
 	})
