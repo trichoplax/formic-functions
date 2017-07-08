@@ -608,6 +608,9 @@ function removeFromDisqualifiedTable(player) {
 	}
 	player.disqualified = false
 	player.included = true
+	if (player.id === 0) {
+		player.code = $('#new_challenger_text').val()
+	}
 	sortGameStats()
 	sortLeaderboard()
 	displayGameTable()
