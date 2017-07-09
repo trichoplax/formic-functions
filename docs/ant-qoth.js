@@ -329,6 +329,12 @@ function binomialSum(n, x) {
 	return sum
 }
 
+Number.isInteger = Number.isInteger || function(value) {
+	return typeof value === 'number' && 
+	isFinite(value) && 
+	Math.floor(value) === value
+}
+
 /* INTERFACE */
 
 function initialiseInterface() {
