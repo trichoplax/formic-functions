@@ -7,22 +7,22 @@
 <body>
 	<h1>Formic Functions - Ant Queen of the Hill Contest</h1>
 	<div id='top_hidden_area'>
-		<div>
+		<div class='aloof'>
 			<button id='run_single_game' disabled='true'><h2>Run single game</h2></button>
 			<button id='run_ongoing_tournament' disabled='true'><h2>Run ongoing tournament</h2></button>
 		</div>
 
 		<div>
-			<div id='no_display_area'><button id='no_display'>No display</button></div>
-			<div id='delay_area'>Delay <input id='delay' type='number' min='0' max='999' value='150'>ms</div>
-			<div id='controls_area'>
+			<div class='side_padded'><button id='no_display'>No display</button></div>
+			<div class='side_padded'>Delay <input id='delay' class='width_5' type='number' min='0' max='999' value='150'>ms</div>
+			<div class='side_padded'>
 				<button id='play'>Play</button>
 				<button id='pause'>Pause</button>
 				<button id='step'>Step (S)</button>
 				<button id='step_ant'>Step ant (A)</button>
 			</div>
-			<div id='squares_per_side_area'><input id='squares_per_side' type='number' value='50' min='5' max='100'> squares per side in zoom</input></div>
-			<div id='fit_area'><button id='fit_canvas'>Fit canvas to width</button></div>
+			<div class='side_padded'><input id='squares_per_side' class='width_4' type='number' value='50' min='5' max='100'> squares per side in zoom</input></div>
+			<div class='side_padded'><button id='fit_canvas'>Fit canvas to width</button></div>
 		</div>
 
 		<canvas id='display_canvas'></canvas>
@@ -31,9 +31,9 @@
 	<button id='restore_display'><h2>Restore display</h2></button>
 
 	<div>
-		<div id='abandon_game_area'><button id='abandon_game'>Abandon current game</button></div>
-		<div id='completed_moves_area'>Number of moves not yet available</div>
-		<div id='reset_leaderboard_area'><button id='reset_leaderboard'>Reset tournament leaderboard</button></div>
+		<div class='side_padded'><button id='abandon_game'>Abandon current game</button></div>
+		<div id='completed_moves_area' class='side_padded'>Number of moves not yet available</div>
+		<div class='side_padded'><button id='reset_leaderboard'>Reset tournament leaderboard</button></div>
 	</div>
 	
 	<table id='current_game_table'>
@@ -86,13 +86,13 @@
 	</table>
 
 	<div>
-		Max <input id='max_players' type='number' min='1' max='99' value='16'></input> players
+		Max <input id='max_players' class='width_4' type='number' min='1' max='99' value='16'></input> players
 	</div>
 	<div>
-		Confidence threshold for determining whether players are in joint n<sup>th</sup> place: <input id='confidence_threshold' type='number' value='95' min='1' max='99'></input>%
+		Confidence threshold for determining whether players are in joint n<sup>th</sup> place: <input id='confidence_threshold' class='width_4' type='number' value='95' min='1' max='99'></input>%
 	</div>
 	<div>
-		Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' type='number' value='5' min='1' max='999'></input>ms
+		Override max function return time (useful for testing on a different machine): <input id='permitted_time_override' class='width_5' type='number' value='5' min='1' max='999'></input>ms
 	</div>
 	<div>
 		Logging to console for debugging the new challenger: <input id='debug' type='checkbox'></input>

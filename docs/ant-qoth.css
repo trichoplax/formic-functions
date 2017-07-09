@@ -2,6 +2,14 @@ body {
 	margin: auto;
 	text-align: center;
 }
+button {
+	padding-left: 1em;
+	padding-right: 1em;
+}
+button::-moz-focus-inner {
+	padding: 0;
+	border: 0;
+}
 textarea {
 	width: 1250px;
 	margin: auto;
@@ -65,21 +73,17 @@ h1, h3 {
 .greyed_row:hover {
 	opacity: 1;
 }
-#delay, #permitted_time_override {
+.width_5 {
 	width: 5em;
 }
-#max_players, #confidence_threshold, #squares_per_side {
+.width_4 {
 	width: 4em;
 }
-#controls_area, #no_display_area, #delay_area, #squares_per_side_area, #fit_area, #abandon_game_area, #reset_leaderboard_area, #completed_moves_area {
+.side_padded {
 	display: inline-block;
 	padding-left: 1.5em;
 	padding-right: 1.5em;
 }
-#run_single_game, #run_full_tournament {
+.aloof {
 	margin-bottom: 1em;
-}
-#no_display, #play, #pause, #step, #step_ant, #fit_canvas, #abandon_game, #reset_leaderboard {
-	padding-left: 0em;
-	padding-right: 0em;
 }
