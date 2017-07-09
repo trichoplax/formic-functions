@@ -1080,9 +1080,8 @@ function gameOver() {
 					row.player.individualVictories[otherRow.player]++
 				}
 			})
-			id = row.id
-			score = playersWithLessFood(id)
-			addScoreToLeaderboard(id, score)
+			score = playersWithLessFood(row.player)
+			row.player.score += score
 		}
 	})
 	updateLeaderboardPositions()
@@ -1239,11 +1238,11 @@ function playersWithHigherScore(id, score) {
 	return count
 }
 
-function playersWithLessFood(id) {
+function playersWithLessFood(player) {
 	var count = 0
 	var playerFood = 0
 	gameStats.forEach(function(row) {
-		if (row.id === id) {
+		if (row.player === player) {
 			playerFood = row.food
 		}
 	})
@@ -1253,14 +1252,6 @@ function playersWithLessFood(id) {
 		}
 	})
 	return count
-}
-
-function addScoreToLeaderboard(id, score) {	// TODO seems redundant
-	players.forEach(function(player) {
-		if (player.id === id) {
-			player.score += score
-		}
-	})
 }
 
 function nineVisibleSquares(currentAnt) {
