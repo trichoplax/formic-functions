@@ -726,7 +726,7 @@ function startNewGame() {
 	gameInProgress = true
 	$('#current_game_table').show()
 	if ($('#seeded_random').prop('checked')) {
-		random = parseInt(seededRandomInitialiser($('#seed').val()), 10)
+		random = seededRandomInitialiser(parseInt($('#seed').val(), 10))
 	} else {
 		random = cryptoRandom
 	}
