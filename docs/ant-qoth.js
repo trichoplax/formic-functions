@@ -561,11 +561,8 @@ function displayLeaderboard() {
 		var checkboxId = '#included_' + id
 		$(checkboxId).prop('checked', row.player.included)
 		$(checkboxId).prop('disabled', row.player.disqualified)
-		var player = players[players.findIndex(function(player){	// TODO fix this mess
-			return player.id === id
-		})]
 		$(checkboxId).change(function() {
-			player.included = $(checkboxId).prop('checked')
+			row.player.included = $(checkboxId).prop('checked')
 		})
 	})	
 }
