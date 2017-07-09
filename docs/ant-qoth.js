@@ -796,6 +796,7 @@ function startNewGame() {
 	})
 	currentAntIndex = 0
 	displayGameTable()
+	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
 	clearTimeout(timeoutID)
 	processingStartTime = performance.now()
 	timeoutID = setTimeout(prepareForNextBatch, 0)
