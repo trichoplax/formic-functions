@@ -17,7 +17,6 @@ function setGlobals() {
 	site = 'codegolf'
 	players = []
 	gameStats = []
-	leaderboardInfo = []
 	disqualifiedInfo = []
 	population = []
 	moveCounter = 0
@@ -461,7 +460,6 @@ function initialiseInterface() {
 	$('#reset_leaderboard').prop('disabled', true)
 	$('#reset_leaderboard').click(function() {
 		$('#reset_leaderboard').prop('disabled', true)
-		leaderboardInfo = []
 		initialiseLeaderboard()
 	})
 	$('#current_game_table').hide()
@@ -515,20 +513,13 @@ function displayGameTable() {
 	$('#current_game_body').html(content)
 }
 
-function initialiseLeaderboard() {	// TODO rewrite to store all this in player so leaderboardInfo is no longer required.
+function initialiseLeaderboard() {
 	gamesPlayed = 0
 	$('#game_counter').html('0 games played.')
 	players.forEach(function(player) {
-		var row = {
-			player: player,
-			id: player.id,
-			position: 1,
-			title: player.title,
-			link: player.link,
-			score: 0,
-			confidence: 0
-		}
-		leaderboardInfo.push(row)
+		player.position = 1
+		player.score = 0
+		player.confidence = 0
 		players.forEach(function(otherPlayer) {
 			player.individualVictories[otherPlayer] = 0
 		})
@@ -538,33 +529,32 @@ function initialiseLeaderboard() {	// TODO rewrite to store all this in player s
 
 function displayLeaderboard() {
 	var	content = ''
-	leaderboardInfo.forEach(function(row) {
-		var checkboxId = 'included_' + row.id
-		if (row.player.disqualified) {
+	players.forEach(function(player) {
+		var checkboxID = 'included_' + player.id
+		if (player.disqualified) {
 			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED</a>'
 		} else {
-			content += '<tr><td>' + row.position
+			content += '<tr><td>' + player.position
 		}
-		if (row.player.id === 0) {
-			content += '<td><a href="' + row.link + '">' + row.title + '</a>'
+		if (player.id === 0) {
+			content += '<td><a href="' + player.link + '">' + player.title + '</a>'
 		} else {
-			content += '<td><a href="' + row.link + '" target="_blank">' + row.title + '</a>'
+			content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
 		}
-		content += '<td>' + row.player.imageTags[paletteChoice] +
-			'<td>' + row.score +
-			'<td>' + Math.floor(row.confidence*100) + '%' +
-			'<td><input id=' + checkboxId + ' type=checkbox>'
+		content += '<td>' + player.imageTags[paletteChoice] +
+			'<td>' + player.score +
+			'<td>' + Math.floor(player.confidence*100) + '%' +
+			'<td><input id=' + checkboxID + ' type=checkbox>'
 	})
 	$('#leaderboard_body').html(content)
-	leaderboardInfo.forEach(function(row) {
-		var id = row.id
-		var checkboxId = '#included_' + id
-		$(checkboxId).prop('checked', row.player.included)
-		$(checkboxId).prop('disabled', row.player.disqualified)
-		$(checkboxId).change(function() {
-			row.player.included = $(checkboxId).prop('checked')
+	players.forEach(function(player) {
+		var checkboxID = '#included_' + player.id
+		$(checkboxID).prop('checked', player.included)
+		$(checkboxID).prop('disabled', player.disqualified)
+		$(checkboxID).change(function() {
+			player.included = $(checkboxID).prop('checked')
 		})
-	})	
+	})
 }
 
 function disqualify(player, reason, input, response) {
@@ -747,6 +737,12 @@ function startNewGame() {
 				player.code = $('#new_challenger_text').val()
 			}
 		}
+	})
+	includedPlayers.sort(function(a, b) {
+		if (a.id < b.id) {
+			return -1
+		}
+		return 1
 	})
 	var numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
 	for (i=0; i<numberOfPlayers; i++) {
@@ -1102,11 +1098,11 @@ function gameOver() {
 }
 
 function sortLeaderboard() {	//	Sort by score, then by confidence if score equal, then by age if those equal. Disqualification overrides these.
-	leaderboardInfo.sort(function(a, b) {
-		if (a.player.disqualified > b.player.disqualified) {
+	players.sort(function(a, b) {
+		if (a.disqualified > b.disqualified) {
 			return 1
 		}
-		if (a.player.disqualified < b.player.disqualified) {
+		if (a.disqualified < b.disqualified) {
 			return -1
 		}
 		if (a.score > b.score) {
@@ -1161,16 +1157,16 @@ function sortGameStats() {	//	Sort by food, then by number of workers if food eq
 
 function updateLeaderboardPositions() {
 	updateConfidences()
-	leaderboardInfo.forEach(function(row) {
-		row.naivePosition = playersWithHigherScore(row.id, row.score) + 1
-		row.position = row.naivePosition	
+	players.forEach(function(player) {
+		player.naivePosition = playersWithHigherScore(player.id, player.score) + 1
+		player.position = player.naivePosition	
 	})
 	sortLeaderboard()
-	leaderboardInfo.forEach(function(row) {
-		if (!row.player.disqualified && row.naivePosition === 1 || blockAboveIsConfident(row.naivePosition)) {
-			row.position = row.naivePosition
+	players.forEach(function(player) {
+		if (!player.disqualified && player.naivePosition === 1 || blockAboveIsConfident(player.naivePosition)) {
+			player.position = player.naivePosition
 		} else {
-			row.position = positionOfBlockAbove(row.naivePosition)
+			player.position = positionOfBlockAbove(player.naivePosition)
 		}
 	})
 }
@@ -1178,8 +1174,8 @@ function updateLeaderboardPositions() {
 function blockAboveIsConfident(naivePosition) {
 	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
 	var confident = true
-	leaderboardInfo.forEach(function(row) {
-		if (row.naivePosition === previousNaivePosition && row.confidence < confidenceThreshold) {
+	players.forEach(function(player) {
+		if (player.naivePosition === previousNaivePosition && player.confidence < confidenceThreshold) {
 			confident = false
 		}
 	})
@@ -1189,9 +1185,9 @@ function blockAboveIsConfident(naivePosition) {
 function positionOfBlockAbove(naivePosition) {
 	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
 	var position = 0
-	leaderboardInfo.forEach(function(row) {
-		if (row.naivePosition === previousNaivePosition) {
-			position = row.position
+	players.forEach(function(player) {
+		if (player.naivePosition === previousNaivePosition) {
+			position = player.position
 		}
 	})
 	return position
@@ -1199,25 +1195,25 @@ function positionOfBlockAbove(naivePosition) {
 
 function naivePositionOfBlockAbove(naivePosition) {
 	var previousNaivePosition = 0
-	leaderboardInfo.forEach(function(row) {
-		if (row.naivePosition > previousNaivePosition && row.naivePosition < naivePosition) {
-			previousNaivePosition = row.naivePosition
+	players.forEach(function(player) {
+		if (player.naivePosition > previousNaivePosition && player.naivePosition < naivePosition) {
+			previousNaivePosition = player.naivePosition
 		}
 	})
 	return previousNaivePosition
 }
 
 function updateConfidences() {
-	leaderboardInfo.forEach(function(row) {
-		if (row.player.disqualified) {
-			row.confidence = 0
+	players.forEach(function(player) {
+		if (player.disqualified) {
+			player.confidence = 0
 		} else {
-			row.confidence = 1
-			leaderboardInfo.forEach(function(otherRow) {
-				if (!otherRow.player.disqualified && row !== otherRow && otherRow.score < row.score) {
-					candidate = individualConfidence(row, otherRow)
-					if (candidate < row.confidence) {
-						row.confidence = candidate
+			player.confidence = 1
+			players.forEach(function(otherPlayer) {
+				if (!otherPlayer.disqualified && player !== otherPlayer && otherPlayer.score < player.score) {
+					candidate = individualConfidence(player, otherPlayer)
+					if (candidate < player.confidence) {
+						player.confidence = candidate
 					}
 				}
 			})
@@ -1225,9 +1221,9 @@ function updateConfidences() {
 	})
 }
 
-function individualConfidence(row, otherRow) {
-	var myWins = row.player.individualVictories[otherRow.player]
-	var otherWins = otherRow.player.individualVictories[row.player]
+function individualConfidence(player, otherPlayer) {
+	var myWins = player.individualVictories[otherPlayer]
+	var otherWins = otherPlayer.individualVictories[player]
 	var totalWins = myWins + otherWins
 	var probability = Math.pow(0.5, totalWins) * binomialSum(totalWins, otherWins)
 	return 1 - probability
@@ -1235,8 +1231,8 @@ function individualConfidence(row, otherRow) {
 
 function playersWithHigherScore(id, score) {
 	var count = 0
-	leaderboardInfo.forEach(function(row) {
-		if (row.score > score) {
+	players.forEach(function(player) {
+		if (player.score > score) {
 			count++
 		}
 	})
@@ -1259,10 +1255,10 @@ function playersWithLessFood(id) {
 	return count
 }
 
-function addScoreToLeaderboard(id, score) {
-	leaderboardInfo.forEach(function(row) {
-		if (row.id === id) {
-			row.score += score
+function addScoreToLeaderboard(id, score) {	// TODO seems redundant
+	players.forEach(function(player) {
+		if (player.id === id) {
+			player.score += score
 		}
 	})
 }
