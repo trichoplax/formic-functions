@@ -45,7 +45,7 @@ function setGlobals() {
 	timeoutID = 0
 	confidenceThreshold = parseInt($('#confidence_threshold').val(), 10) / 100
 	permittedTime = parseInt($('#permitted_time_override').val(), 10)
-	noMove = {cell: 4, color: 0, workerType: 0, dummy_move_as_player_disqualified__See_disqualified_table: true}
+	noMove = {cell:4, color:0, type:0, dummy_move_as_player_disqualified__See_disqualified_table:true}
 	arenaWidth = 2500
 	arenaHeight = 1000
 	arenaArea = arenaWidth * arenaHeight
@@ -917,8 +917,8 @@ function processCurrentAnt() {
 		var y = (currentAnt.y + Math.floor(targetCell/3) - 1 + arenaHeight) % arenaHeight
 		if (response.color) {
 			setColor(x, y, response.color)
-		} else if (response.workerType) {
-			makeWorker(x, y, response.workerType, currentAnt, rotatedView, response)
+		} else if (response.type) {
+			makeWorker(x, y, response.type, currentAnt, rotatedView, response)
 		} else if (response.cell !== 4) {
 			moveAnt(x, y, currentAnt, rotatedView, response)
 		}
@@ -947,7 +947,7 @@ function setColor(x, y, color) {
 	updateArenaCanvasCell(x, y)
 }
 
-function makeWorker(x, y, workerType, parent, input, response) {
+function makeWorker(x, y, type, parent, input, response) {
 	if (parent.type < 5) {
 		disqualify(parent.player, 'A worker cannot create a new worker.', input, response)
 		return
@@ -972,7 +972,7 @@ function makeWorker(x, y, workerType, parent, input, response) {
 	}
 	var newAnt = {
 		player: parent.player,
-		type: workerType,
+		type: type,
 		food: 0,
 		x: x,
 		y: y
@@ -984,7 +984,7 @@ function makeWorker(x, y, workerType, parent, input, response) {
 	var id = parent.player.id
 	gameStats.forEach(function(row) {
 		if (row.id === id) {
-			var type = 'type' + workerType
+			var type = 'type' + type
 			row[type]++
 			row.food--
 		}
@@ -1369,19 +1369,19 @@ function getMove(ant, rotatedView) {
 			return noMove
 		}
 	}
-	if (typeof response.workerType !== 'undefined') {
-		if (!Number.isInteger(response.workerType)) {
-			disqualify(player, 'WorkerType is not an integer: ' + response.workerType, rotatedView, response)
+	if (typeof response.type !== 'undefined') {
+		if (!Number.isInteger(response.type)) {
+			disqualify(player, 'Type is not an integer: ' + response.type, rotatedView, response)
 			return noMove
 		}
-		if (response.workerType < 0 || response.workerType > 4) {
-			disqualify(player, 'Worker type out of range: ' + response.workerType, rotatedView, response)
+		if (response.type < 0 || response.type > 4) {
+			disqualify(player, 'Type out of range: ' + response.type, rotatedView, response)
 			return noMove
 		}
 	}
-	if (typeof response.color !== 'undefined' && typeof response.workerType !== 'undefined') {
-		if (response.color && response.workerType) {
-			disqualify(player, 'Both color and worker type specified.', rotatedView, response)
+	if (typeof response.color !== 'undefined' && typeof response.type !== 'undefined') {
+		if (response.color && response.type) {
+			disqualify(player, 'Both color and type specified.', rotatedView, response)
 			return noMove
 		}
 	}
@@ -1483,26 +1483,26 @@ function createPlayers(answers) {
 			
 			player.code = '' +
 				'if (view[4].color === 1) {'+
-				'	return { cell: 4, workerType: 0, color: 5 }' +
+				'	return { cell: 4, type: 0, color: 5 }' +
 				'}' +
 				'for (var i=0; i<9; i++) {' +
 				'	if (view[i].food) {' +
-				'		return { cell: i, workerType: 0, color: 0 }' +
+				'		return { cell: i, type: 0, color: 0 }' +
 				'	}' +
 				'}' +
 				'if (view[0].color === 1) {'+
-				'return { cell: 0, workerType: 0, color: 0 }'+
+				'return { cell: 0, type: 0, color: 0 }'+
 				'}'+
 				'if (view[2].color === 1) {'+
-				'return { cell: 2, workerType: 0, color: 0 }'+
+				'return { cell: 2, type: 0, color: 0 }'+
 				'}'+
 				'if (view[6].color === 1) {'+
-				'return { cell: 6, workerType: 0, color: 0 }'+
+				'return { cell: 6, type: 0, color: 0 }'+
 				'}'+
 				'if (view[8].color === 1) {'+
-				'return { cell: 8, workerType: 0, color: 0 }'+
+				'return { cell: 8, type: 0, color: 0 }'+
 				'}'+
-				'return { cell: 0, workerType: 0, color: 0 }'
+				'return { cell: 0, type: 0, color: 0 }'
 
 			player.antFunction = antFunctionMaker(player.code)
 			player.link = answer.link
