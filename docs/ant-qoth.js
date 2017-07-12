@@ -257,7 +257,11 @@ function colorPlayers() {
 
 /* HELPERS */
 
-function maskedEval(functionBody, params) {	//thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
+function antFunctionMaker(functionBody) {
+	return (new Function('with(this) { ' + functionBody + ';}'))
+}
+
+function maskedEval(antFunction, params) {	//thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
 	var mask = {}
 	for (var i in this) {
 		mask[i] = undefined
@@ -266,7 +270,7 @@ function maskedEval(functionBody, params) {	//thanks http://stackoverflow.com/a/
 		if (params.hasOwnProperty(i))
 		mask[i] = params[i]
 	}
-	return (new Function('with(this) { ' + functionBody + ';}')).call(mask)
+	return antFunction.call(mask)
 }
 
 function decode(html) {
@@ -609,6 +613,7 @@ function removeFromDisqualifiedTable(player) {
 	player.included = true
 	if (player.id === 0) {
 		player.code = $('#new_challenger_text').val()
+		player.antFunction = antFunctionMaker(player.code)
 	}
 	sortGameStats()
 	sortLeaderboard()
@@ -750,6 +755,7 @@ function startNewGame() {
 			includedPlayers.push(player)
 			if (player.id === 0) {
 				player.code = $('#new_challenger_text').val()
+				player.antFunction = antFunctionMaker(player.code)
 			}
 		}
 	})
@@ -1298,7 +1304,7 @@ function nineVisibleSquares(currentAnt) {
 
 function getMove(ant, rotatedView) {
 	var player = ant.player
-	var code = player.code
+	var antFunction = player.antFunction
 	var parameters = {}
 	parameters.view = rotatedView
 	if (player.id === 0) {
@@ -1306,7 +1312,7 @@ function getMove(ant, rotatedView) {
 	}
 	var time = performance.now()
 	try {
-		var response = maskedEval(code, parameters)
+		var response = maskedEval(antFunction, parameters)
 	} catch(e) {
 		disqualify(player, e, rotatedView, response)
 		return noMove
@@ -1482,7 +1488,7 @@ function createPlayers(answers) {
 				'}'+
 				'return { cell: 0, workerType: 0, color: 0 }'
 
-			
+			player.antFunction = antFunctionMaker(player.code)
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,20) + ' - ' + user
 			player.individualVictories = {}
