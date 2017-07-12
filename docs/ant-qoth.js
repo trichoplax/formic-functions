@@ -213,6 +213,7 @@ function setNewPalette(selectedDropdownRow) {
 		$('#selected_palette').attr('src', paletteImageSources[paletteChoice])
 		displayGameTable()
 		displayLeaderboard()
+		fillArenaCanvas()
 		displayArena()
 	}
 }
