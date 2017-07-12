@@ -137,6 +137,7 @@ function initialiseSupplementaryCanvases() {
 	for (i=0; i<arenaCanvas.width*arenaCanvas.height; i++) {
 		arenaImage.data[i*4 + 3] = 255
 	}
+	fillArenaCanvas()
 	
 	zoomCanvas = document.createElement('canvas')
 	zoomCanvas.width = 1000
@@ -644,25 +645,34 @@ function displayDisqualifiedTable() {
 }
 
 function fillArenaCanvas() {
-	var x, y, cell, i
+	var x, y
 	for (y=0; y<arenaHeight; y++) {
 		for (x=0; x<arenaWidth; x++) {
-			cell = arena[x + y*arenaWidth]
-			if (cell.food) {
-				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].food[i]
-				}
-			} else if (cell.ant) {
-				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].ant[i]
-				}			
-			} else {
-				for (i=0; i<3; i++) {
-					arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].tile[cell.color-1][i]
-				}			
-			}
+			updateArenaCanvasCell(x, y)
 		}
 	}
+	putImageToArenaCanvas()
+}
+
+function updateArenaCanvasCell(x, y) {
+	var cell, i
+	cell = arena[x + y*arenaWidth]
+	if (cell.food) {
+		for (i=0; i<3; i++) {
+			arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].food[i]
+		}
+	} else if (cell.ant) {
+		for (i=0; i<3; i++) {
+			arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].ant[i]
+		}			
+	} else {
+		for (i=0; i<3; i++) {
+			arenaImage.data[(x + y*arenaWidth) * 4 + i] = arenaColors[paletteChoice].tile[cell.color-1][i]
+		}			
+	}
+}
+
+function putImageToArenaCanvas() {
 	arenaCtx.putImageData(arenaImage, 0, 0)
 }
 
@@ -710,8 +720,8 @@ function paintAnt(x, y, ant) {
 	zoomCtx.drawImage(player.avatars[paletteChoice], 0, 0, 2, 2, (x+0.5)*zoomCellSideLength - size, (y+0.5)*zoomCellSideLength - size, size*2, size*2)
 }
 
-function displayArena() {
-	fillArenaCanvas()
+function displayArena() {	
+	putImageToArenaCanvas()
 	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
 	if (zoomed) {
 		displayZoomedArea()
@@ -810,6 +820,7 @@ function startNewGame() {
 	currentAntIndex = 0
 	displayGameTable()
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
+	fillArenaCanvas()
 	clearTimeout(timeoutID)
 	processingStartTime = performance.now()
 	timeoutID = setTimeout(prepareForNextBatch, 0)
@@ -932,6 +943,7 @@ function displayMoveInfo(ant, rotatedView, response) {
 
 function setColor(x, y, color) {
 	arena[x + y*arenaWidth].color = color
+	updateArenaCanvasCell(x, y)
 }
 
 function makeWorker(x, y, workerType, parent, input, response) {
@@ -978,6 +990,7 @@ function makeWorker(x, y, workerType, parent, input, response) {
 	})
 	sortGameStats()
 	displayGameTable()
+	updateArenaCanvasCell(x, y)
 }
 
 function moveAnt(x, y, ant, input, response) {
@@ -993,6 +1006,8 @@ function moveAnt(x, y, ant, input, response) {
 	}	
 	destinationCell.ant = ant
 	departureCell.ant = null
+	updateArenaCanvasCell(ant.x, ant.y)
+	updateArenaCanvasCell(x, y)
 	ant.x = x
 	ant.y = y
 	if (destinationCell.food) {
