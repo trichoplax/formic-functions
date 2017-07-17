@@ -1480,30 +1480,6 @@ function createPlayers(answers) {
 			player.included = true
 			player.disqualified = false
 			player.code = decode(codeMatch[1])
-			
-			player.code = '' +
-				'if (view[4].color === 1) {'+
-				'	return { cell: 4, type: 0, color: 5 }' +
-				'}' +
-				'for (var i=0; i<9; i++) {' +
-				'	if (view[i].food) {' +
-				'		return { cell: i, type: 0, color: 0 }' +
-				'	}' +
-				'}' +
-				'if (view[0].color === 1) {'+
-				'return { cell: 0, type: 0, color: 0 }'+
-				'}'+
-				'if (view[2].color === 1) {'+
-				'return { cell: 2, type: 0, color: 0 }'+
-				'}'+
-				'if (view[6].color === 1) {'+
-				'return { cell: 6, type: 0, color: 0 }'+
-				'}'+
-				'if (view[8].color === 1) {'+
-				'return { cell: 8, type: 0, color: 0 }'+
-				'}'+
-				'return { cell: 0, type: 0, color: 0 }'
-
 			player.antFunction = antFunctionMaker(player.code)
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,20) + ' - ' + user
