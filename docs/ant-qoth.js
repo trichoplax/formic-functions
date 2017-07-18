@@ -260,7 +260,7 @@ function colorPlayers() {
 /* HELPERS */
 
 function antFunctionMaker(functionBody) {
-	return (new Function('with(this) { ' + functionBody + ';}'))
+	return (new Function('with(this) { ' + functionBody + '\n}'))
 }
 
 function maskedEval(antFunction, params) {	//thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
