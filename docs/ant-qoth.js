@@ -984,8 +984,8 @@ function makeWorker(x, y, type, parent, input, response) {
 	var id = parent.player.id
 	gameStats.forEach(function(row) {
 		if (row.id === id) {
-			var type = 'type' + type
-			row[type]++
+			var type_key = 'type' + type
+			row[type_key]++
 			row.food--
 		}
 	})
