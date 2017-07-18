@@ -8,7 +8,7 @@
 </head>
 <body>
 	<h1>Formic Functions - Ant Queen of the Hill Contest</h1>
-	<div id='top_hidden_area'>
+	<div class='hide_when_no_display'>
 		<div class='aloof'>
 			<button id='run_single_game' disabled='true'><h2>Run single game</h2></button>
 			<button id='run_ongoing_tournament' disabled='true'><h2>Run ongoing tournament</h2></button>
@@ -30,14 +30,14 @@
 		<canvas id='display_canvas'></canvas>
 	</div>
 
-	<button id='restore_display'><h2>Restore display</h2></button>
+	<button class='show_when_no_display' id='restore_display'><h2>Restore display</h2></button>
 
 	<div>
-		<div class='side_padded'>Move mouse over arena to zoom.</div>
+		<div class='hide_when_no_display side_padded'>Move mouse over arena to zoom.</div>
 		<div class='side_padded'><button id='abandon_game'>Abandon current game</button></div>
 		<div id='completed_moves_area' class='side_padded'>Number of moves not yet available</div>
 		<div class='side_padded'><button id='reset_leaderboard'>Reset tournament leaderboard</button></div>
-		<div class='side_padded'>Click arena to lock zoom.</div>
+		<div class='hide_when_no_display side_padded'>Click arena to lock zoom.</div>
 	</div>
 	
 	<table id='current_game_table'>

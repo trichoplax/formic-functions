@@ -401,8 +401,8 @@ function initialiseInterface() {
 	})
 	$('#no_display').prop('disabled', true)
 	$('#no_display').click(function() {
-		$('#top_hidden_area').hide(300)
-		$('#restore_display').show(300)
+		$('.hide_when_no_display').hide(300)
+		$('.show_when_no_display').show(300)
 		display = false
 		continuousMoves = true
 		batchSize = bigBatchSize
@@ -469,10 +469,10 @@ function initialiseInterface() {
 	$('#display_canvas').click(function() {
 		zoomLocked = !zoomLocked
 	})
-	$('#restore_display').hide()
+	$('.show_when_no_display').hide()
 	$('#restore_display').click(function() {
-		$('#restore_display').hide(300)
-		$('#top_hidden_area').show(300)
+		$('.show_when_no_display').hide(300)
+		$('.hide_when_no_display').show(300)
 		display = true
 		batchSize = 1
 	})
