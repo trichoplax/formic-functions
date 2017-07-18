@@ -1,4 +1,4 @@
-// Many thanks to Helka Homba for these posts, which provided the idea of a Stack Snippets KotH and heavily informed this code.
+// Many thanks to Helka Homba for these posts, which provided the idea of a web browser hosted KotH and heavily informed this code.
 // Red vs. Blue - Pixel Team Battlebots: https://codegolf.stackexchange.com/q/48353/20283
 // Block Building Bot Flocks: https://codegolf.stackexchange.com/q/50690/20283
 
