@@ -73,6 +73,9 @@ h1, h3 {
 .greyed_row:hover {
 	opacity: 1;
 }
+.width_7 {
+	width: 7em;
+}
 .width_5 {
 	width: 5em;
 }

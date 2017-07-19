@@ -20,7 +20,7 @@ function setGlobals() {
 	disqualifiedInfo = []
 	population = []
 	moveCounter = 0
-	movesPerGame = 10000
+	movesPerGame = $('#moves_per_game').val()
 	paletteSize = 8
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
 	delay = parseInt($('#delay').val(), 10)
@@ -434,9 +434,13 @@ function initialiseInterface() {
 	$('#step_ant').click(function() {
 		stepAnt()
 	})
-	$('#max_players').val(maxPlayers)
-	$('#max_players').change(function() {
-		maxPlayers = parseInt($('#max_players').val(), 10)
+	$('#squares_per_side').change(function() {
+		zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
+		zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
+		if (zoomed) {
+			fillZoomCanvas()
+			displayZoomedArea()
+		}
 	})
 	$('#fit_canvas').click(function() {
 		displayCanvas.style.borderLeft = 'none'
@@ -485,6 +489,10 @@ function initialiseInterface() {
 	})
 	$('#current_game_table').hide()
 	$('#disqualified_table').hide()
+	$('#max_players').val(maxPlayers)
+	$('#max_players').change(function() {
+		maxPlayers = parseInt($('#max_players').val(), 10)
+	})
 	$('#confidence_threshold').change(function() {
 		confidenceThreshold = parseInt($('#confidence_threshold').val(), 10) / 100
 	})
@@ -499,15 +507,6 @@ function initialiseInterface() {
 		$('#seed').prop('disabled', !$('#seeded_random').prop('checked'))
 	})
 	$('#seed').prop('disabled', true)
-	$('#new_challenger_text').change(function() {})
-	$('#squares_per_side').change(function() {
-		zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
-		zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
-		if (zoomed) {
-			fillZoomCanvas()
-			displayZoomedArea()
-		}
-	})
 }
 
 function showLoadedTime() {
@@ -741,6 +740,7 @@ function displayZoomedArea() {
 /* GAMEPLAY */
 
 function startNewGame() {
+	movesPerGame = $('#moves_per_game').val()
 	gameInProgress = true
 	$('#current_game_table').show()
 	if ($('#seeded_random').prop('checked')) {
