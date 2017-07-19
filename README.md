@@ -1,4 +1,4 @@
-# Formic Functions - Ant QotH
+# Formic Functions - Ant Queen of the Hill contest
 
 ## Not yet complete
 
