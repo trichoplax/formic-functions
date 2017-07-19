@@ -1482,7 +1482,7 @@ function createPlayers(answers) {
 			player.code = decode(codeMatch[1])
 			player.antFunction = antFunctionMaker(player.code)
 			player.link = answer.link
-			player.title = nameMatch[1].substring(0,20) + ' - ' + user
+			player.title = nameMatch[1].substring(0,40) + ' - ' + user
 			player.individualVictories = {}
 			players.push(player)
 		}		
