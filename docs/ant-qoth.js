@@ -22,6 +22,7 @@ function setGlobals() {
 	moveCounter = 0
 	movesPerGame = $('#moves_per_game').val()
 	paletteSize = 8
+	codeUpToDate = true
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
 	delay = parseInt($('#delay').val(), 10)
 	processingStartTime = 0
@@ -507,6 +508,24 @@ function initialiseInterface() {
 		$('#seed').prop('disabled', !$('#seeded_random').prop('checked'))
 	})
 	$('#seed').prop('disabled', true)
+	$('#code_up_to_date').click(function() {
+		players.forEach(function(player) {
+			if (player.id === 0) {
+				player.code = $('#new_challenger_text').val()
+				player.antFunction = antFunctionMaker(player.code)
+			}
+		})
+		$('#code_up_to_date').html('Code up to date')
+		$('#code_up_to_date').prop('disabled', true)
+		codeUpToDate = true
+	})
+	$('#new_challenger_text').change(function() {
+		if (codeUpToDate) {
+			codeUpToDate = false
+			$('#code_up_to_date').html('<h2>Code changed - click to use this new version</h2>')
+			$('#code_up_to_date').prop('disabled', false)
+		}
+	})
 }
 
 function showLoadedTime() {
@@ -764,10 +783,6 @@ function startNewGame() {
 	players.forEach(function(player) {
 		if (player.included) {
 			includedPlayers.push(player)
-			if (player.id === 0) {
-				player.code = $('#new_challenger_text').val()
-				player.antFunction = antFunctionMaker(player.code)
-			}
 		}
 	})
 	includedPlayers.sort(function(a, b) {
