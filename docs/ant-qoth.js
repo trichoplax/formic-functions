@@ -13,8 +13,8 @@ function load() {
 }
 
 function setGlobals() {
-	qid = 13324
-	site = 'codegolf.meta'
+	qid = 135102
+	site = 'codegolf'
 	players = []
 	gameStats = []
 	disqualifiedInfo = []
