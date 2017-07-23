@@ -1149,13 +1149,19 @@ function gameOver() {
 	abandonGame()
 }
 
-function sortLeaderboard() {	//	Sort by score, then by confidence if score equal, then by age if those equal. Disqualification overrides these.
+function sortLeaderboard() {	//	Sort by score, then by confidence if score equal, then by age if those equal.
 	players.sort(function(a, b) {
 		if (a.disqualified > b.disqualified) {
 			return 1
 		}
 		if (a.disqualified < b.disqualified) {
 			return -1
+		}
+		if (a.included > b.included) {
+			return -1
+		}
+		if (a.included < b.included) {
+			return 1
 		}
 		if (a.score > b.score) {
 			return -1
