@@ -16,6 +16,7 @@ function setGlobals() {
 	qid = 135102
 	site = 'codegolf'
 	players = []
+	invalidPlayers = []
 	gameStats = []
 	disqualifiedInfo = []
 	population = []
@@ -260,8 +261,15 @@ function colorPlayers() {
 
 /* HELPERS */
 
-function antFunctionMaker(functionBody) {
-	return (new Function('with(this) { ' + functionBody + '\n}'))
+function antFunctionMaker(player) {
+	try {
+		antFunction = new Function('with(this) { ' + player.code + '\n}')
+	}
+	catch (e) {
+		antFunction = null
+		invalidPlayers.push(player)
+	}
+	return antFunction
 }
 
 function maskedEval(antFunction, params) {	//thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
@@ -1458,7 +1466,6 @@ function loadPlayers() {
 	loadAnswers(site, qid, function(answers) {
 		createPlayers(answers)
 	})
-	showLoadedTime()
 }
 
 function loadAnswers(site, qid, onFinish) {
@@ -1501,14 +1508,21 @@ function createPlayers(answers) {
 			player.included = true
 			player.disqualified = false
 			player.code = decode(codeMatch[1])
-			player.antFunction = antFunctionMaker(player.code)
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,40) + ' - ' + user
 			player.individualVictories = {}
+			player.antFunction = antFunctionMaker(player)
 			players.push(player)
 		}		
 	})
+	showLoadedTime()
 	colorPlayers()
+	invalidPlayers.forEach(function(player) {
+		var reason = 'Excluded at load. Invalid function body.'
+		var input = 'None - never played.'
+		var response = 'None - never played.'
+		disqualify(player, reason, input, response)
+	})
 	initialiseLeaderboard()
 }
 
