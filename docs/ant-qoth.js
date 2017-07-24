@@ -489,12 +489,9 @@ function initialiseInterface() {
 		batchSize = 1
 	})
 	$('#abandon_game').prop('disabled', true)
-	$('#abandon_game').click(abandonGame)
+	$('#abandon_game').click(checkThenAbandonGame)
 	$('#reset_leaderboard').prop('disabled', true)
-	$('#reset_leaderboard').click(function() {
-		$('#reset_leaderboard').prop('disabled', true)
-		initialiseLeaderboard()
-	})
+	$('#reset_leaderboard').click(checkThenResetLeaderboard)
 	$('#current_game_table').hide()
 	$('#disqualified_table').hide()
 	$('#max_players').val(maxPlayers)
@@ -848,6 +845,19 @@ function startNewGame() {
 	timeoutID = setTimeout(prepareForNextBatch, 0)
 }
 
+function checkThenResetLeaderboard() {
+	if (window.confirm('Confirm that you want to lose all the data in the leaderboard.')) {
+		$('#reset_leaderboard').prop('disabled', true)
+		initialiseLeaderboard()
+	}
+}
+	
+function checkThenAbandonGame() {
+	if (window.confirm('Confirm that you want to abandon this game.')) {
+		abandonGame()
+	}
+}
+
 function abandonGame() {
 	gameInProgress = false
 	clearTimeout(timeoutID)
@@ -862,7 +872,7 @@ function abandonGame() {
 		$('#step').prop('disabled', true)
 		$('#step_ant').prop('disabled', true)
 		$('#abandon_game').prop('disabled', true)
-	}		
+	}
 }
 
 function processAnts() {
