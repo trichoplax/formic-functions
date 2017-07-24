@@ -1296,7 +1296,7 @@ function individualConfidence(player, otherPlayer) {
 function playersWithHigherScore(id, score) {
 	var count = 0
 	players.forEach(function(player) {
-		if (player.score > score) {
+		if (player.included && player.score > score) {
 			count++
 		}
 	})
