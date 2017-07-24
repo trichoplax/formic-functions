@@ -290,8 +290,9 @@ function decode(html) {
 
 cryptoRandom = (function() {
 	var a = new Uint32Array(16384)
-	var i = a.length - 1
+	var i = 0
 	var crypto = window.crypto || window.msCrypto
+	crypto.getRandomValues(a)
 	return function(n) {
 		i = (i + 1) % a.length
 		if (i === 0) {
