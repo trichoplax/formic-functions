@@ -313,13 +313,11 @@ seededRandomInitialiser = function(seed) {		// thanks https://en.wikipedia.org/w
 }
 
 function shuffle(array) {
-	for (var t=0; t<2; t++) {	// Shuffle twice to disguise bias in the random number generator
-		for (var i=0; i<array.length; i++) {
-			var target = random(array.length - i) + i
-			var temp = array[i]
-			array[i] = array[target]
-			array[target] = temp
-		}
+	for (var i=0; i<array.length; i++) {
+		var target = random(array.length - i) + i
+		var temp = array[i]
+		array[i] = array[target]
+		array[target] = temp
 	}
 }
 
