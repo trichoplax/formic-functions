@@ -267,7 +267,7 @@ function antFunctionMaker(player) {
 	}
 	catch (e) {
 		antFunction = null
-		invalidPlayers.push(player)
+		invalidPlayers.push({player:player, errorMessage:e})
 	}
 	return antFunction
 }
@@ -1516,11 +1516,11 @@ function createPlayers(answers) {
 	})
 	showLoadedTime()
 	colorPlayers()
-	invalidPlayers.forEach(function(player) {
-		var reason = 'Excluded at load. Invalid function body.'
+	invalidPlayers.forEach(function(record) {
+		var reason = 'Excluded at load. Invalid function body: ' + record.errorMessage
 		var input = 'None - never played.'
 		var response = 'None - never played.'
-		disqualify(player, reason, input, response)
+		disqualify(record.player, reason, input, response)
 	})
 	initialiseLeaderboard()
 }
