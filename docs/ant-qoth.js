@@ -1190,7 +1190,7 @@ function sortLeaderboard() {	//	Sort by score, then by confidence if score equal
 	})
 }
 
-function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal. Disqualification overrides these.
+function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal.
 	gameStats.sort(function(a, b) {
 		if (a.player.disqualified > b.player.disqualified) {
 			return 1
@@ -1269,12 +1269,12 @@ function naivePositionOfBlockAbove(naivePosition) {
 
 function updateConfidences() {
 	players.forEach(function(player) {
-		if (player.disqualified) {
+		if (!player.included) {
 			player.confidence = 0
 		} else {
 			player.confidence = 1
 			players.forEach(function(otherPlayer) {
-				if (!otherPlayer.disqualified && player !== otherPlayer && otherPlayer.score < player.score) {
+				if (otherPlayer.included && player !== otherPlayer && otherPlayer.score < player.score) {
 					candidate = individualConfidence(player, otherPlayer)
 					if (candidate < player.confidence) {
 						player.confidence = candidate
