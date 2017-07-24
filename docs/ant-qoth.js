@@ -519,7 +519,7 @@ function initialiseInterface() {
 		players.forEach(function(player) {
 			if (player.id === 0) {
 				player.code = $('#new_challenger_text').val()
-				player.antFunction = antFunctionMaker(player.code)
+				player.antFunction = antFunctionMaker(player)
 			}
 		})
 		$('#code_up_to_date').html('Code up to date')
@@ -639,8 +639,7 @@ function removeFromDisqualifiedTable(player) {
 	player.disqualified = false
 	player.included = true
 	if (player.id === 0) {
-		player.code = $('#new_challenger_text').val()
-		player.antFunction = antFunctionMaker(player.code)
+		player.antFunction = antFunctionMaker(player)
 	}
 	sortGameStats()
 	sortLeaderboard()
@@ -1495,6 +1494,8 @@ function createPlayers(answers) {
 	var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
 	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER', individualVictories: {} }
+	testPlayer.code = $('#new_challenger_text').val()
+	testPlayer.antFunction = antFunctionMaker(testPlayer)
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
