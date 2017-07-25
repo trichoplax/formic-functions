@@ -1237,7 +1237,7 @@ function updateLeaderboardPositions() {
 	})
 	sortLeaderboard()
 	players.forEach(function(player) {
-		if (!player.disqualified && player.naivePosition === 1 || blockAboveIsConfident(player.naivePosition)) {
+		if (player.included && player.naivePosition === 1 || blockAboveIsConfident(player.naivePosition)) {
 			player.position = player.naivePosition
 		} else {
 			player.position = positionOfBlockAbove(player.naivePosition)
@@ -1249,7 +1249,7 @@ function blockAboveIsConfident(naivePosition) {
 	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
 	var confident = true
 	players.forEach(function(player) {
-		if (player.naivePosition === previousNaivePosition && player.confidence < confidenceThreshold) {
+		if (player.included && player.naivePosition === previousNaivePosition && player.confidence < confidenceThreshold) {
 			confident = false
 		}
 	})
@@ -1260,7 +1260,7 @@ function positionOfBlockAbove(naivePosition) {
 	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
 	var position = 0
 	players.forEach(function(player) {
-		if (player.naivePosition === previousNaivePosition) {
+		if (player.included && player.naivePosition === previousNaivePosition) {
 			position = player.position
 		}
 	})
@@ -1270,7 +1270,7 @@ function positionOfBlockAbove(naivePosition) {
 function naivePositionOfBlockAbove(naivePosition) {
 	var previousNaivePosition = 0
 	players.forEach(function(player) {
-		if (player.naivePosition > previousNaivePosition && player.naivePosition < naivePosition) {
+		if (player.included && player.naivePosition > previousNaivePosition && player.naivePosition < naivePosition) {
 			previousNaivePosition = player.naivePosition
 		}
 	})
