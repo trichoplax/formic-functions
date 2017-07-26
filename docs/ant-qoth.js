@@ -953,6 +953,7 @@ function processCurrentAnt() {
 		} else if (response.cell !== 4) {
 			moveAnt(x, y, currentAnt, rotatedView, response)
 		}
+		passFood(currentAnt)
 	}
 }
 
@@ -1056,7 +1057,6 @@ function moveAnt(x, y, ant, input, response) {
 			displayGameTable()					
 		}
 	}
-	passFood(ant)
 }
 
 function passFood(ant) {
