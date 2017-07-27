@@ -616,8 +616,10 @@ function displayLeaderboard() {
 		var checkboxID = 'included_' + player.id
 		if (player.disqualified) {
 			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED</a>'
-		} else {
+		} else if (player.included) {
 			content += '<tr><td>' + player.position
+		} else {
+			content += '<tr><td>-'
 		}
 		if (player.id === 0) {
 			content += '<td><a href="' + player.link + '">' + player.title + '</a>'
@@ -636,6 +638,8 @@ function displayLeaderboard() {
 		$(checkboxID).prop('disabled', player.disqualified)
 		$(checkboxID).change(function() {
 			player.included = $(checkboxID).prop('checked')
+			updateLeaderboardPositions()
+			displayLeaderboard()			
 		})
 	})
 }
@@ -654,7 +658,7 @@ function disqualify(player, reason, input, response) {
 	player.disqualified = true
 	player.included = false
 	sortGameStats()
-	sortLeaderboard()
+	updateLeaderboardPositions()
 	displayGameTable()
 	displayLeaderboard()
 }
@@ -679,7 +683,7 @@ function removeFromDisqualifiedTable(player) {
 		player.antFunction = antFunctionMaker(player)
 	}
 	sortGameStats()
-	sortLeaderboard()
+	updateLeaderboardPositions()
 	displayGameTable()
 	displayLeaderboard()
 }
