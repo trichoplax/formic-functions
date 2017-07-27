@@ -322,25 +322,36 @@ function shuffle(array) {
 	}
 }
 
-function binomial(n, k) {
-	if (2*k > n) {
-		return binomial(n, n-k)
-	}
-	var i
-	var b = 1
-	for (i=0; i<k; i++) {
-		b *= (n-i) / (k-i)
-	}
-	return b
-}
-
-function binomialSum(n, x) {
+function probability(totalWins, otherWins) {  // Use cumulative binomial distribution to calculate the probability of seeing otherWins or fewer if evenly matched.
 	var i
 	var sum = 0
-	for (i=0; i<=x; i++) {
-		sum += binomial(n, i)
+	for (i=0; i<=otherWins; i++) {
+		sum += individualProbability(totalWins, i)
 	}
 	return sum
+}
+
+function individualProbability(totalWins, otherWins) {  // Use binomial distribution to calculate the probability of seeing exactly otherWins.
+	if (2*otherWins > totalWins) {
+		return individualProbability(totalWins, totalWins - otherWins)
+	}
+	
+	var i
+	var numberOfHalves = totalWins
+	var resultSoFar = 1
+
+	for (i=0; i<otherWins; i++) {
+		while (resultSoFar > 1 && numberOfHalves > 0) {
+			numberOfHalves--
+			resultSoFar /= 2
+		}
+		resultSoFar *= (totalWins-i) / (otherWins-i)
+	}
+	for (i=0; i<numberOfHalves; i++) {
+		resultSoFar /= 2
+	}
+	
+	return resultSoFar
 }
 
 Number.isInteger = Number.isInteger || function(value) {
@@ -1299,8 +1310,8 @@ function individualConfidence(player, otherPlayer) {
 	var myWins = player.individualVictories[otherPlayer]
 	var otherWins = otherPlayer.individualVictories[player]
 	var totalWins = myWins + otherWins
-	var probability = Math.pow(0.5, totalWins) * binomialSum(totalWins, otherWins)
-	return 1 - probability
+	var probabilityGivenEvenlyMatched = probability(totalWins, otherWins)
+	return 1 - probabilityGivenEvenlyMatched
 }
 
 function playersWithHigherScore(id, score) {
