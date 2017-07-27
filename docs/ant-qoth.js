@@ -367,6 +367,23 @@ Number.isInteger = Number.isInteger || function(value) {
 	Math.floor(value) === value
 }
 
+function dumpLeaderboardHtmlToConsole() {
+	var content = '<table><thead><tr><th>Position<th>Player<th>Score<th>Confidence of not dropping</thead><tbody>'
+	players.forEach(function(player) {
+		if (player.included) {
+			content += '<tr><td>' + player.position
+			if (player.id === 0) {
+				content += '<td>' + player.title
+			} else {
+				content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
+			}
+			content += '<td>' + player.score + '<td>' + Math.floor(player.confidence*100) + '%'
+		}
+	})
+	content += '</tbody></table>'
+	console.log(content)
+}
+
 /* INTERFACE */
 
 function suppressButtonsUntilLoaded() {
