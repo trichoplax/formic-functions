@@ -101,27 +101,27 @@ function initialiseColorPalettes() {
 	arenaColor = {}
 	arenaColor.tile = [
 		[255, 255, 255],
+		[240, 228, 66],
+		[204, 121, 167],
+		[86, 180, 233],
+		[213, 94, 0],
+		[0, 158, 115],
+		[0, 114, 178],
+		[0, 0, 0]
+	]
+	arenaColor.food = arenaColor.tile[7]
+	arenaColor.ant = arenaColor.tile[7]
+	arenaColors.push(arenaColor)
+		
+	arenaColor = {}
+	arenaColor.tile = [
+		[255, 255, 255],
 		[218, 218, 218],
 		[181, 181, 181],
 		[144, 144, 144],
 		[108, 108, 108],
 		[72, 72, 72],
 		[36, 36, 36],
-		[0, 0, 0]
-	]
-	arenaColor.food = arenaColor.tile[7]
-	arenaColor.ant = arenaColor.tile[7]
-	arenaColors.push(arenaColor)
-	
-	arenaColor = {}
-	arenaColor.tile = [
-		[255, 255, 255],
-		[204, 121, 167],
-		[213, 94, 0],
-		[0, 114, 178],
-		[240, 228, 66],
-		[0, 158, 115],
-		[86, 180, 233],
 		[0, 0, 0]
 	]
 	arenaColor.food = arenaColor.tile[7]
