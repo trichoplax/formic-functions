@@ -7,9 +7,16 @@
 $(load)
 
 function load() {
+	confirmRefresh()
 	setGlobals()
 	loadPlayers()
 	initialiseInterface()
+}
+
+function confirmRefresh() {
+	window.addEventListener('beforeunload', function(e) {
+		e.returnValue = ''
+	})
 }
 
 function setGlobals() {
