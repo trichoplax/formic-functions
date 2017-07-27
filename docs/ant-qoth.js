@@ -371,7 +371,7 @@ function dumpLeaderboardHtmlToConsole() {
 	var content = '<table><thead><tr><th>Position<th>Player<th>Score<th>Confidence of not dropping</thead><tbody>'
 	players.forEach(function(player) {
 		if (player.included) {
-			content += '<tr><td>' + player.position
+			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
 			if (player.id === 0) {
 				content += '<td>' + player.title
 			} else {
@@ -383,6 +383,20 @@ function dumpLeaderboardHtmlToConsole() {
 	content += '</tbody></table>'
 	console.log(content)
 }
+
+ordinalIndicator = (function() {
+	var t
+	var standard = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th']
+	var eighty = []
+	for (t=0; t<8; t++) {
+		eighty += standard.slice()
+	}
+	var teens = ['th', 'th', 'th', 'th', 'th', 'th', 'th', 'th', 'th', 'th']
+	var indicators = standard.concat(teens, eighty)
+	return function(n) {
+		return indicators[n%100]
+	}
+})()
 
 /* INTERFACE */
 
@@ -617,7 +631,7 @@ function displayLeaderboard() {
 		if (player.disqualified) {
 			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED</a>'
 		} else if (player.included) {
-			content += '<tr><td>' + player.position
+			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
 		} else {
 			content += '<tr><td>-'
 		}
