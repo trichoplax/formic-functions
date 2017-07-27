@@ -7,10 +7,10 @@
 $(load)
 
 function load() {
+	suppressButtonsUntilLoaded()
 	confirmRefresh()
 	setGlobals()
 	loadPlayers()
-	initialiseInterface()
 }
 
 function confirmRefresh() {
@@ -368,6 +368,11 @@ Number.isInteger = Number.isInteger || function(value) {
 }
 
 /* INTERFACE */
+
+function suppressButtonsUntilLoaded() {
+	$('#run_single_game').prop('disabled', true)
+	$('#run_ongoing_tournament').prop('disabled', true)
+}
 
 function initialiseInterface() {
 	$('document').keypress(function(event) {
@@ -1491,6 +1496,7 @@ function atLeastOneVisibleAnt() {
 function loadPlayers() {
 	loadAnswers(site, qid, function(answers) {
 		createPlayers(answers)
+	initialiseInterface()
 	})
 }
 
