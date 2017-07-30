@@ -935,14 +935,21 @@ function abandonGame() {
 
 function processAnts() {
 	processingStartTime = performance.now()
-	for (var t=0; t<batchSize; t++) {
+	var loopLimit = batchSize
+	if (display && continuousMoves) {
+		loopLimit = population.length
+	}
+	for (var t=0; t<loopLimit; t++) {
 		processCurrentAnt()
 		currentAntIndex = (currentAntIndex + 1) % population.length
 		if (currentAntIndex === 0) {
 			moveCounter++
-		}
-		if (moveCounter >= movesPerGame) {
-			break
+			if (moveCounter >= movesPerGame) {
+				break
+			}
+			if (display) {
+				break
+			}
 		}
 	}
 	if (moveCounter === 1) {
