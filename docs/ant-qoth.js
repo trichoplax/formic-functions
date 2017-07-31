@@ -840,19 +840,8 @@ function startNewGame() {
 			includedPlayers.push(player)
 		}
 	})
-	includedPlayers.sort(function(a, b) {
-		if (a.id < b.id) {
-			return -1
-		}
-		return 1
-	})
+	shuffle(includedPlayers)
 	var numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
-	for (i=0; i<numberOfPlayers; i++) {
-		var r = random(includedPlayers.length)
-		var temp = includedPlayers[i]
-		includedPlayers[i] = includedPlayers[r]
-		includedPlayers[r] = temp
-	}
 	var playersThisGame = includedPlayers.slice(0, numberOfPlayers)
 	gameStats = []
 	population = []
@@ -1556,7 +1545,7 @@ function createPlayers(answers) {
 	var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
 	var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
-	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
+	var testPlayer = { id: 0, included: false, disqualified: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
 	testPlayer.code = $('#new_challenger_text').val()
 	testPlayer.antFunction = antFunctionMaker(testPlayer)
 	players.push(testPlayer)
