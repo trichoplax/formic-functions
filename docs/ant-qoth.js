@@ -52,7 +52,6 @@ function setGlobals() {
 	zoomedAreaCentreY = 0
 	zoomOnLeft = true
 	timeoutID = 0
-	confidenceThreshold = parseInt($('#confidence_threshold').val(), 10) / 100
 	permittedTime = parseInt($('#permitted_time_override').val(), 10)
 	noMove = {cell:4, color:0, type:0, dummy_move_as_player_disqualified__See_disqualified_table:true}
 	arenaWidth = 2500
@@ -368,19 +367,22 @@ Number.isInteger = Number.isInteger || function(value) {
 }
 
 function dumpLeaderboardHtmlToConsole() {
-	var content = '<table><thead><tr><th>Position<th>Player<th>Score<th>Confidence of not dropping</thead><tbody>'
-	players.forEach(function(player) {
-		if (player.included) {
-			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
-			if (player.id === 0) {
-				content += '<td>' + player.title
-			} else {
-				content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
+	var content = ''
+	for (var i=0; i<3; i++) {
+		content += '<table><thead><tr><th>Position<th>Player<th>Score</thead><tbody>'
+		players.forEach(function(player) {
+			if (player.included) {
+				content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
+				if (player.id === 0) {
+					content += '<td>' + player.title
+				} else {
+					content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
+				}
+				content += '<td>' + player.score[i]
 			}
-			content += '<td>' + player.score + '<td>' + Math.floor(player.confidence*100) + '%'
-		}
-	})
-	content += '</tbody></table>'
+		})
+		content += '</tbody></table>'
+	}
 	console.log(content)
 }
 
@@ -389,7 +391,7 @@ ordinalIndicator = (function() {
 	var standard = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th']
 	var eighty = []
 	for (t=0; t<8; t++) {
-		eighty += standard.slice()
+		eighty = eighty.concat(standard)
 	}
 	var teens = ['th', 'th', 'th', 'th', 'th', 'th', 'th', 'th', 'th', 'th']
 	var indicators = standard.concat(teens, eighty)
@@ -552,9 +554,6 @@ function initialiseInterface() {
 	$('#max_players').change(function() {
 		maxPlayers = parseInt($('#max_players').val(), 10)
 	})
-	$('#confidence_threshold').change(function() {
-		confidenceThreshold = parseInt($('#confidence_threshold').val(), 10) / 100
-	})
 	$('#permitted_time_override').change(function() {
 		permittedTime = parseInt($('#permitted_time_override').val(), 10)
 	})
@@ -615,11 +614,7 @@ function initialiseLeaderboard() {
 	$('#game_counter').html('0 games played.')
 	players.forEach(function(player) {
 		player.position = 1
-		player.score = 0
-		player.confidence = 0
-		players.forEach(function(otherPlayer) {
-			player.individualVictories[otherPlayer] = 0
-		})
+		player.score = [0, 0, 0]
 	})
 	displayLeaderboard()
 }
@@ -641,8 +636,7 @@ function displayLeaderboard() {
 			content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
 		}
 		content += '<td>' + player.imageTags[paletteChoice] +
-			'<td>' + player.score +
-			'<td>' + Math.floor(player.confidence*100) + '%' +
+			'<td>' + player.score[2] +
 			'<td><input id=' + checkboxID + ' type=checkbox>'
 	})
 	$('#leaderboard_body').html(content)
@@ -1202,13 +1196,9 @@ function gameOver() {
 	var id, score
 	gameStats.forEach(function(row) {
 		if (!row.player.disqualified) {
-			gameStats.forEach(function(otherRow) {
-				if (otherRow !== row && row.food > otherRow.food) {
-					row.player.individualVictories[otherRow.player]++
-				}
-			})
 			score = playersWithLessFood(row.player)
-			row.player.score += score
+			row.player.score[gamesPlayed % 2] += score
+			row.player.score[2] +=score
 		}
 	})
 	updateLeaderboardPositions()
@@ -1223,7 +1213,7 @@ function gameOver() {
 	abandonGame()
 }
 
-function sortLeaderboard() {	//	Sort by score, then by confidence if score equal, then by age if those equal.
+function sortLeaderboard() {	//	Sort by score, then by id if score equal.
 	players.sort(function(a, b) {
 		if (a.disqualified > b.disqualified) {
 			return 1
@@ -1237,16 +1227,10 @@ function sortLeaderboard() {	//	Sort by score, then by confidence if score equal
 		if (a.included < b.included) {
 			return 1
 		}
-		if (a.score > b.score) {
+		if (a.score[2] > b.score[2]) {
 			return -1
 		}
-		if (a.score < b.score) {
-			return 1
-		}
-		if (a.confidence > b.confidence) {
-			return -1
-		}
-		if (a.confidence < b.confidence) {
+		if (a.score[2] < b.score[2]) {
 			return 1
 		}
 		if (a.id > b.id) {
@@ -1258,7 +1242,7 @@ function sortLeaderboard() {	//	Sort by score, then by confidence if score equal
 	})
 }
 
-function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal.
+function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by id if those equal.
 	gameStats.sort(function(a, b) {
 		if (a.player.disqualified > b.player.disqualified) {
 			return 1
@@ -1288,30 +1272,56 @@ function sortGameStats() {	//	Sort by food, then by number of workers if food eq
 }
 
 function updateLeaderboardPositions() {
-	updateConfidences()
+	var lower, upper, i
+	var endpoints = []
 	players.forEach(function(player) {
-		player.naivePosition = playersWithHigherScore(player.id, player.score) + 1
+		lower = Math.min(minPossiblePosition(player, 0), minPossiblePosition(player, 1))
+		upper = Math.max(maxPossiblePosition(player, 0), maxPossiblePosition(player, 1))
+		if (lower < upper) {
+			endpoints.push({min: lower, max: upper})
+		}
+	})
+	players.forEach(function(player) {
+		player.naivePosition = minPossiblePosition(player, 2)
 		player.position = player.naivePosition	
 	})
 	sortLeaderboard()
-	players.forEach(function(player) {
-		if (player.included && player.naivePosition === 1 || blockAboveIsConfident(player.naivePosition)) {
-			player.position = player.naivePosition
-		} else {
-			player.position = positionOfBlockAbove(player.naivePosition)
+	for (i=1; i<players.length; i++) {
+		if (bothInAnyRange(i, i+1, endpoints)) {
+			players[i].position = players[i-1].position
 		}
-	})
+	}
+	for (i=players.length-2; i>0; i--) {
+		players[i].position = Math.min(players[i].position, players[i+1].position)
+	}
 }
 
-function blockAboveIsConfident(naivePosition) {
-	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
-	var confident = true
-	players.forEach(function(player) {
-		if (player.included && player.naivePosition === previousNaivePosition && player.confidence < confidenceThreshold) {
-			confident = false
+function bothInAnyRange(position1, position2, ranges) {
+	var contained = false
+	ranges.forEach(function(range) {
+		if (position1 >= range.min && position2 >= range.min && position1 <= range.max && position2 <= range.max) {
+			contained = true
 		}
 	})
-	return confident
+	return contained
+}
+
+function minPossiblePosition(player, index) {
+	return playersWithHigherScore(player.id, player.score, index) + 1
+}
+
+function maxPossiblePosition(player, index) {
+	return numberOfIncludedPlayers() - playersWithLowerScore(player.id, player.score, index)
+}
+
+function numberOfIncludedPlayers() {
+	var number = 0
+	players.forEach(function(player) {
+		if (player.included) {
+			number++
+		}
+	})
+	return number
 }
 
 function positionOfBlockAbove(naivePosition) {
@@ -1335,36 +1345,20 @@ function naivePositionOfBlockAbove(naivePosition) {
 	return previousNaivePosition
 }
 
-function updateConfidences() {
-	players.forEach(function(player) {
-		if (!player.included) {
-			player.confidence = 0
-		} else {
-			player.confidence = 1
-			players.forEach(function(otherPlayer) {
-				if (otherPlayer.included && player !== otherPlayer && otherPlayer.score < player.score) {
-					candidate = individualConfidence(player, otherPlayer)
-					if (candidate < player.confidence) {
-						player.confidence = candidate
-					}
-				}
-			})
-		}
-	})
-}
-
-function individualConfidence(player, otherPlayer) {
-	var myWins = player.individualVictories[otherPlayer]
-	var otherWins = otherPlayer.individualVictories[player]
-	var totalWins = myWins + otherWins
-	var probabilityGivenEvenlyMatched = probability(totalWins, otherWins)
-	return 1 - probabilityGivenEvenlyMatched
-}
-
-function playersWithHigherScore(id, score) {
+function playersWithHigherScore(id, score, index) {
 	var count = 0
 	players.forEach(function(player) {
-		if (player.included && player.score > score) {
+		if (player.included && player.score[index] > score[index]) {
+			count++
+		}
+	})
+	return count
+}
+
+function playersWithLowerScore(id, score, index) {
+	var count = 0
+	players.forEach(function(player) {
+		if (player.included && player.score[index] < score[index]) {
 			count++
 		}
 	})
@@ -1562,7 +1556,7 @@ function createPlayers(answers) {
 	var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
 	var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
-	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER', individualVictories: {} }
+	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
 	testPlayer.code = $('#new_challenger_text').val()
 	testPlayer.antFunction = antFunctionMaker(testPlayer)
 	players.push(testPlayer)
@@ -1579,7 +1573,6 @@ function createPlayers(answers) {
 			player.code = decode(codeMatch[1])
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,40) + ' - ' + user
-			player.individualVictories = {}
 			player.antFunction = antFunctionMaker(player)
 			players.push(player)
 		}		
