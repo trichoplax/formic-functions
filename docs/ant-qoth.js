@@ -369,7 +369,7 @@ Number.isInteger = Number.isInteger || function(value) {
 function dumpLeaderboardHtmlToConsole() {
 	var content = ''
 	for (var i=0; i<3; i++) {
-		content += '<table><thead><tr><th>Position<th>Player<th>Score</thead><tbody>'
+		content += '<table><thead><tr><th>Position<th>Player<th>Score<th>Games<th>Score per game</thead><tbody>'
 		players.forEach(function(player) {
 			if (player.included) {
 				content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
@@ -378,7 +378,7 @@ function dumpLeaderboardHtmlToConsole() {
 				} else {
 					content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
 				}
-				content += '<td>' + player.score[i]
+				content += '<td>' + player.score[i] + '<td>' + player.games[i] + '<td>' + player.scorePerGame[i].toFixed(2)
 			}
 		})
 		content += '</tbody></table>'
@@ -615,6 +615,8 @@ function initialiseLeaderboard() {
 	players.forEach(function(player) {
 		player.position = 1
 		player.score = [0, 0, 0]
+		player.games = [0, 0, 0]
+		player.scorePerGame = [0, 0, 0]
 	})
 	displayLeaderboard()
 }
@@ -637,6 +639,8 @@ function displayLeaderboard() {
 		}
 		content += '<td>' + player.imageTags[paletteChoice] +
 			'<td>' + player.score[2] +
+			'<td>' + player.games[2] +
+			'<td>' + player.scorePerGame[2].toFixed(2) +
 			'<td><input id=' + checkboxID + ' type=checkbox>'
 	})
 	$('#leaderboard_body').html(content)
@@ -1188,6 +1192,10 @@ function gameOver() {
 			score = playersWithLessFood(row.player)
 			row.player.score[gamesPlayed % 2] += score
 			row.player.score[2] +=score
+			row.player.games[gamesPlayed % 2]++
+			row.player.games[2]++
+			row.player.scorePerGame[gamesPlayed % 2] = row.player.score[gamesPlayed % 2] / row.player.games[gamesPlayed % 2]
+			row.player.scorePerGame[2] = row.player.score[2] / row.player.games[2]
 		}
 	})
 	updateLeaderboardPositions()
@@ -1202,7 +1210,7 @@ function gameOver() {
 	abandonGame()
 }
 
-function sortLeaderboard() {	//	Sort by score, then by id if score equal.
+function sortLeaderboard() {	//	Sort by scorePerGame, then by id if scorePerGame equal.
 	players.sort(function(a, b) {
 		if (a.disqualified > b.disqualified) {
 			return 1
@@ -1216,10 +1224,10 @@ function sortLeaderboard() {	//	Sort by score, then by id if score equal.
 		if (a.included < b.included) {
 			return 1
 		}
-		if (a.score[2] > b.score[2]) {
+		if (a.scorePerGame[2] > b.scorePerGame[2]) {
 			return -1
 		}
-		if (a.score[2] < b.score[2]) {
+		if (a.scorePerGame[2] < b.scorePerGame[2]) {
 			return 1
 		}
 		if (a.id > b.id) {
@@ -1296,11 +1304,11 @@ function bothInAnyRange(position1, position2, ranges) {
 }
 
 function minPossiblePosition(player, index) {
-	return playersWithHigherScore(player.id, player.score, index) + 1
+	return playersWithHigherScorePerGame(player.id, player.scorePerGame, index) + 1
 }
 
 function maxPossiblePosition(player, index) {
-	return numberOfIncludedPlayers() - playersWithLowerScore(player.id, player.score, index)
+	return numberOfIncludedPlayers() - playersWithLowerScorePerGame(player.id, player.scorePerGame, index)
 }
 
 function numberOfIncludedPlayers() {
@@ -1334,20 +1342,20 @@ function naivePositionOfBlockAbove(naivePosition) {
 	return previousNaivePosition
 }
 
-function playersWithHigherScore(id, score, index) {
+function playersWithHigherScorePerGame(id, scorePerGame, index) {
 	var count = 0
 	players.forEach(function(player) {
-		if (player.included && player.score[index] > score[index]) {
+		if (player.included && player.scorePerGame[index] > scorePerGame[index]) {
 			count++
 		}
 	})
 	return count
 }
 
-function playersWithLowerScore(id, score, index) {
+function playersWithLowerScorePerGame(id, scorePerGame, index) {
 	var count = 0
 	players.forEach(function(player) {
-		if (player.included && player.score[index] < score[index]) {
+		if (player.included && player.scorePerGame[index] < scorePerGame[index]) {
 			count++
 		}
 	})
