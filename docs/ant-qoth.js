@@ -234,7 +234,7 @@ function colorPlayers() {
 	players.forEach(function(player) {
 		player.avatars = []
 		player.imageTags = []
-		shuffle(colors)
+		shuffle(colors, random)
 		playerColorNumbers = colors.slice(0, 4)
 		paletteCanvases.forEach(function(paletteCanvas) {
 			canvas = document.createElement('canvas')
@@ -320,9 +320,9 @@ seededRandomInitialiser = function(seed) {		// thanks https://en.wikipedia.org/w
 	}
 }
 
-function shuffle(array) {
-	for (var i=0; i<array.length; i++) {
-		var target = random(array.length - i) + i
+function shuffle(array, randomToUse) {
+	for (var i=0; i<array.length-1; i++) {  // No need to consider last element of array as it would only ever be swapped with itself.
+		var target = randomToUse(array.length - i) + i
 		var temp = array[i]
 		array[i] = array[target]
 		array[target] = temp
@@ -822,7 +822,8 @@ function startNewGame() {
 	movesPerGame = $('#moves_per_game').val()
 	gameInProgress = true
 	$('#current_game_table').show()
-	if ($('#seeded_random').prop('checked')) {
+	seededRandom = $('#seeded_random').prop('checked')
+	if (seededRandom) {
 		random = seededRandomInitialiser(parseInt($('#seed').val(), 10))
 	} else {
 		random = cryptoRandom
@@ -838,14 +839,21 @@ function startNewGame() {
 		arena[i].color = 1
 		arena[i].ant = null
 	}
-	shuffle(arena)
+	shuffle(arena, random)
 	var includedPlayers = []
 	players.forEach(function(player) {
 		if (player.included) {
 			includedPlayers.push(player)
 		}
 	})
-	shuffle(includedPlayers)
+	includedPlayers.sort(function(a, b) {  // If players are not sorted, the random order will not be the same when using seeded random.
+		if (a.id < b.id) {
+			return 1
+		} else {
+			return -1
+		}
+	})
+	shuffle(includedPlayers, random)
 	var numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
 	var playersThisGame = includedPlayers.slice(0, numberOfPlayers)
 	gameStats = []
@@ -853,6 +861,11 @@ function startNewGame() {
 	playersThisGame.forEach(function(player) {
 		player.elapsedTime = 0
 		player.permittedTime = 0
+		if (seededRandom) {
+			player.random = seededRandomInitialiser(random(4294967296))  // Gives a seed from the full range of UInt32.
+		} else {
+			player.random = cryptoRandom
+		}
 		while (true) {
 			var x = random(arenaWidth)
 			var y = random(arenaHeight)
@@ -993,7 +1006,7 @@ function processCurrentAnt() {
 	var currentAnt = population[currentAntIndex]
 	if (!currentAnt.player.disqualified) {
 		var unrotatedView = nineVisibleSquares(currentAnt)	
-		var rotation = random(4)
+		var rotation = currentAnt.player.random(4)  // Separate random per player so that changes in one player leave others with same behaviour up until contact. Makes seeded random more useful for debugging a player.
 		var rotatedView = []
 		for (i=0; i<9; i++) {
 			rotatedView.push(unrotatedView[rotator[rotation][i]])
@@ -1142,7 +1155,7 @@ function adjustFood(ant, change) {
 function passFoodQueen(ant) {
 	var x, y, i, cell, cells, candidate
 	cells = neighbours.slice()
-	shuffle(cells)
+	shuffle(cells, ant.player.random)
 	for (i=0; i<cells.length; i++) {	// Check for enemy workers to lose food to.
 		if (!ant.food) {
 			break
@@ -1184,7 +1197,7 @@ function passFoodWorker(ant) {
 		}
 	} else {	// Check for enemy queen to take food from.
 		cells = neighbours.slice()
-		shuffle(cells)
+		shuffle(cells, ant.player.random)
 		for (i=0; i<cells.length; i++) {
 			x = (ant.x + cells[i].x + arenaWidth) % arenaWidth
 			y = (ant.y + cells[i].y + arenaHeight) % arenaHeight
