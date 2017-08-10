@@ -329,38 +329,6 @@ function shuffle(array, randomToUse) {
 	}
 }
 
-function probability(totalWins, otherWins) {  // Use cumulative binomial distribution to calculate the probability of seeing otherWins or fewer if evenly matched.
-	var i
-	var sum = 0
-	for (i=0; i<=otherWins; i++) {
-		sum += individualProbability(totalWins, i)
-	}
-	return sum
-}
-
-function individualProbability(totalWins, otherWins) {  // Use binomial distribution to calculate the probability of seeing exactly otherWins.
-	if (2*otherWins > totalWins) {
-		return individualProbability(totalWins, totalWins - otherWins)
-	}
-	
-	var i
-	var numberOfHalves = totalWins
-	var resultSoFar = 1
-
-	for (i=0; i<otherWins; i++) {
-		while (resultSoFar > 1 && numberOfHalves > 0) {
-			numberOfHalves--
-			resultSoFar /= 2
-		}
-		resultSoFar *= (totalWins-i) / (otherWins-i)
-	}
-	for (i=0; i<numberOfHalves; i++) {
-		resultSoFar /= 2
-	}
-	
-	return resultSoFar
-}
-
 Number.isInteger = Number.isInteger || function(value) {
 	return typeof value === 'number' && 
 	isFinite(value) && 
