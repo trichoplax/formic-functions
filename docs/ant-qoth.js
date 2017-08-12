@@ -30,6 +30,7 @@ function setGlobals() {
 	moveCounter = 0
 	movesPerGame = $('#moves_per_game').val()
 	paletteSize = 8
+	numberOfLeaderboards = 6
 	codeUpToDate = true
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
 	delay = parseInt($('#delay').val(), 10)
@@ -337,7 +338,7 @@ Number.isInteger = Number.isInteger || function(value) {
 
 function dumpLeaderboardHtmlToConsole() {
 	var content = ''
-	for (var i=0; i<3; i++) {
+	for (var i=0; i<numberOfLeaderboards+1; i++) {
 		content += '<table><thead><tr><th>Position<th>Player<th>Score<th>Games<th>Score per game</thead><tbody>'
 		players.forEach(function(player) {
 			if (player.included) {
@@ -583,9 +584,14 @@ function initialiseLeaderboard() {
 	$('#game_counter').html('0 games played.')
 	players.forEach(function(player) {
 		player.position = 1
-		player.score = [0, 0, 0]
-		player.games = [0, 0, 0]
-		player.scorePerGame = [0, 0, 0]
+		player.score = []
+		player.games = []
+		player.scorePerGame = []
+		for (var t=0; t<numberOfLeaderboards+1; t++) {
+			player.score.push(0)
+			player.games.push(0)
+			player.scorePerGame.push(0)
+		}
 	})
 	displayLeaderboard()
 }
@@ -607,9 +613,9 @@ function displayLeaderboard() {
 			content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
 		}
 		content += '<td>' + player.imageTags[paletteChoice] +
-			'<td>' + player.score[2] +
-			'<td>' + player.games[2] +
-			'<td>' + player.scorePerGame[2].toFixed(2) +
+			'<td>' + player.score[numberOfLeaderboards] +
+			'<td>' + player.games[numberOfLeaderboards] +
+			'<td>' + player.scorePerGame[numberOfLeaderboards].toFixed(2) +
 			'<td><input id=' + checkboxID + ' type=checkbox>'
 	})
 	$('#leaderboard_body').html(content)
@@ -1185,12 +1191,12 @@ function gameOver() {
 	gameStats.forEach(function(row) {
 		if (!row.player.disqualified) {
 			score = playersWithLessFood(row.player)
-			row.player.score[gamesPlayed % 2] += score
-			row.player.score[2] +=score
-			row.player.games[gamesPlayed % 2]++
-			row.player.games[2]++
-			row.player.scorePerGame[gamesPlayed % 2] = row.player.score[gamesPlayed % 2] / row.player.games[gamesPlayed % 2]
-			row.player.scorePerGame[2] = row.player.score[2] / row.player.games[2]
+			row.player.score[gamesPlayed % numberOfLeaderboards] += score
+			row.player.score[numberOfLeaderboards] +=score
+			row.player.games[gamesPlayed % numberOfLeaderboards]++
+			row.player.games[numberOfLeaderboards]++
+			row.player.scorePerGame[gamesPlayed % numberOfLeaderboards] = row.player.score[gamesPlayed % numberOfLeaderboards] / row.player.games[gamesPlayed % numberOfLeaderboards]
+			row.player.scorePerGame[numberOfLeaderboards] = row.player.score[numberOfLeaderboards] / row.player.games[numberOfLeaderboards]
 		}
 	})
 	updateLeaderboardPositions()
@@ -1219,10 +1225,10 @@ function sortLeaderboard() {	//	Sort by scorePerGame, then by id if scorePerGame
 		if (a.included < b.included) {
 			return 1
 		}
-		if (a.scorePerGame[2] > b.scorePerGame[2]) {
+		if (a.scorePerGame[numberOfLeaderboards] > b.scorePerGame[numberOfLeaderboards]) {
 			return -1
 		}
-		if (a.scorePerGame[2] < b.scorePerGame[2]) {
+		if (a.scorePerGame[numberOfLeaderboards] < b.scorePerGame[numberOfLeaderboards]) {
 			return 1
 		}
 		if (a.id > b.id) {
@@ -1267,14 +1273,14 @@ function updateLeaderboardPositions() {
 	var lower, upper, i
 	var endpoints = []
 	players.forEach(function(player) {
-		lower = Math.min(minPossiblePosition(player, 0), minPossiblePosition(player, 1))
-		upper = Math.max(maxPossiblePosition(player, 0), maxPossiblePosition(player, 1))
+		lower = minPossiblePositionOverall(player)
+		upper = maxPossiblePositionOverall(player)
 		if (lower < upper) {
 			endpoints.push({min: lower, max: upper})
 		}
 	})
 	players.forEach(function(player) {
-		player.naivePosition = minPossiblePosition(player, 2)
+		player.naivePosition = minPossiblePosition(player, numberOfLeaderboards)
 		player.position = player.naivePosition	
 	})
 	sortLeaderboard()
@@ -1286,6 +1292,30 @@ function updateLeaderboardPositions() {
 	for (i=players.length-2; i>0; i--) {
 		players[i].position = Math.min(players[i].position, players[i+1].position)
 	}
+}
+
+function minPossiblePositionOverall(player) {
+	var candidate
+	var minimum = players.length
+	for (var i=0; i<numberOfLeaderboards; i++) {
+		candidate = minPossiblePosition(player, i)
+		if (candidate < minimum) {
+			minimum = candidate
+		}
+	}
+	return minimum
+}
+
+function maxPossiblePositionOverall(player) {
+	var candidate
+	var maximum = 1
+	for (var i=0; i<numberOfLeaderboards; i++) {
+		candidate = maxPossiblePosition(player, i)
+		if (candidate > maximum) {
+			maximum = candidate
+		}
+	}
+	return maximum
 }
 
 function bothInAnyRange(position1, position2, ranges) {
