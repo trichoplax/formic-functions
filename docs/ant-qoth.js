@@ -1432,13 +1432,25 @@ function nineVisibleSquares(currentAnt) {
 memoisedGetMove = getMoveMemoiser(getMove)
 
 function getMoveMemoiser(f) {
-	memoised_data = {}
+	rareMemoisedData = {}
+	commonMemoisedData = {}
 	return (ant, rotatedView) => {
-		stringified_input = JSON.stringify([ant.player.id, rotatedView])
-		if (!memoised_data.hasOwnProperty(stringified_input)) {
-			memoised_data[stringified_input] = f(ant, rotatedView)
+		if (Object.keys(rareMemoisedData).length > 100) {
+			rareMemoisedData = {}
 		}
-		return memoised_data[stringified_input]
+		stringifiedInput = JSON.stringify([ant.player.id, rotatedView])
+		if (rareMemoisedData.hasOwnProperty(stringifiedInput)) {
+			if (!commonMemoisedData.hasOwnProperty(stringifiedInput)) {
+				commonMemoisedData[stringifiedInput] = rareMemoisedData[stringifiedInput]
+			}
+		} else {
+			if (commonMemoisedData.hasOwnProperty(stringifiedInput)) {
+				rareMemoisedData[stringifiedInput] = commonMemoisedData[stringifiedInput]
+			} else {
+				rareMemoisedData[stringifiedInput] = f(ant, rotatedView)
+			}
+		}
+		return rareMemoisedData[stringifiedInput]
 	}
 }
 
