@@ -985,7 +985,7 @@ function processCurrentAnt() {
 		for (i=0; i<9; i++) {
 			rotatedView.push(unrotatedView[rotator[rotation][i]])
 		}
-		var response = getMove(currentAnt, rotatedView)
+		var response = memoisedGetMove(currentAnt, rotatedView)
 		if (debug && currentAnt.player.id === 0) {
 			displayMoveInfo(currentAnt, rotatedView, response)
 		}
@@ -1427,6 +1427,19 @@ function nineVisibleSquares(currentAnt) {
 		}
 	}
 	return view
+}
+
+memoisedGetMove = getMoveMemoiser(getMove)
+
+function getMoveMemoiser(f) {
+	memoised_data = {}
+	return (ant, rotatedView) => {
+		stringified_input = JSON.stringify([ant.player.id, rotatedView])
+		if (!memoised_data.hasOwnProperty(stringified_input)) {
+			memoised_data[stringified_input] = f(ant, rotatedView)
+		}
+		return memoised_data[stringified_input]
+	}
 }
 
 function getMove(ant, rotatedView) {
