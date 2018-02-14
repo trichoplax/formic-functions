@@ -1434,10 +1434,8 @@ memoisedGetMove = getMoveMemoiser(getMove)
 function getMoveMemoiser(f) {
 	rareMemoisedData = {}
 	commonMemoisedData = {}
+	counter = 0
 	return (ant, rotatedView) => {
-		if (Object.keys(rareMemoisedData).length > 100) {
-			rareMemoisedData = {}
-		}
 		stringifiedInput = JSON.stringify([ant.player.id, rotatedView])
 		if (rareMemoisedData.hasOwnProperty(stringifiedInput)) {
 			if (!commonMemoisedData.hasOwnProperty(stringifiedInput)) {
@@ -1447,6 +1445,11 @@ function getMoveMemoiser(f) {
 			if (commonMemoisedData.hasOwnProperty(stringifiedInput)) {
 				rareMemoisedData[stringifiedInput] = commonMemoisedData[stringifiedInput]
 			} else {
+				counter++
+				if (counter > 1000) {
+					rareMemoisedData = {}
+					counter = 0
+				}
 				rareMemoisedData[stringifiedInput] = f(ant, rotatedView)
 			}
 		}
