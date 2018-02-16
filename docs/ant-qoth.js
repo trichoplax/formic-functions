@@ -280,6 +280,18 @@ function antFunctionMaker(player) {
 	return antFunction
 }
 
+function antCacheBuilder() {
+	return {
+		tenured: {},
+		tenuredEntries: 0,
+		youngGenPerHue: [{}, {}, {}, {}, {}, {}, {}, {}],
+		youngEntriesPerHue: [0, 0, 0, 0, 0, 0, 0, 0],
+		accessCount: 0,
+		tenuredHitsCount: 0,
+		youngHitsCount: 0,
+	};
+}
+
 function maskedEval(antFunction, params) {	//thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
 	var mask = {}
 	for (var i in this) {
@@ -540,6 +552,7 @@ function initialiseInterface() {
 			if (player.id === 0) {
 				player.code = $('#new_challenger_text').val()
 				player.antFunction = antFunctionMaker(player)
+				player.antCache = antCacheBuilder()
 			}
 		})
 		$('#code_up_to_date').html('Code up to date')
@@ -668,6 +681,7 @@ function removeFromDisqualifiedTable(player) {
 	player.included = true
 	if (player.id === 0) {
 		player.antFunction = antFunctionMaker(player)
+		player.antCache = antCacheBuilder()
 	}
 	sortGameStats()
 	updateLeaderboardPositions()
@@ -1197,6 +1211,7 @@ function gameOver() {
 			row.player.games[numberOfLeaderboards]++
 			row.player.scorePerGame[gamesPlayed % numberOfLeaderboards] = row.player.score[gamesPlayed % numberOfLeaderboards] / row.player.games[gamesPlayed % numberOfLeaderboards]
 			row.player.scorePerGame[numberOfLeaderboards] = row.player.score[numberOfLeaderboards] / row.player.games[numberOfLeaderboards]
+			printMemoCache(row.player)
 		}
 	})
 	updateLeaderboardPositions()
@@ -1432,29 +1447,59 @@ function nineVisibleSquares(currentAnt) {
 memoisedGetMove = getMoveMemoiser(getMove)
 
 function getMoveMemoiser(f) {
-	rareMemoisedData = {}
-	commonMemoisedData = {}
-	counter = 0
 	return (ant, rotatedView) => {
-		stringifiedInput = JSON.stringify([ant.player.id, rotatedView])
-		if (rareMemoisedData.hasOwnProperty(stringifiedInput)) {
-			if (!commonMemoisedData.hasOwnProperty(stringifiedInput)) {
-				commonMemoisedData[stringifiedInput] = rareMemoisedData[stringifiedInput]
-			}
+		var key = JSON.stringify(rotatedView)
+		var cache = ant.player.antCache
+		cache.accessCount++
+		if (cache.tenured.hasOwnProperty(key)) {
+			cache.tenuredHitsCount++
+			return cache.tenured[key]
 		} else {
-			if (commonMemoisedData.hasOwnProperty(stringifiedInput)) {
-				rareMemoisedData[stringifiedInput] = commonMemoisedData[stringifiedInput]
-			} else {
-				counter++
-				if (counter > 1000) {
-					rareMemoisedData = {}
-					counter = 0
+			var hue = 0;
+			for (var i = 0; i <= 8; i++) {
+				hue ^= rotatedView[i].color
+			}
+			hue &= 7;
+			if (cache.youngGenPerHue[hue].hasOwnProperty(key)) {
+				cache.youngHitsCount++
+				var result = cache.youngGenPerHue[hue][key]
+				if (cache.tenuredEntries < 60000) {
+					delete cache.youngGenPerHue[hue][key]
+					cache.tenured[key] = result
+					cache.tenuredEntries++
 				}
-				rareMemoisedData[stringifiedInput] = f(ant, rotatedView)
+				return result
+			} else { // cache miss
+				var result = f(ant, rotatedView)
+				if (cache.youngEntriesPerHue[hue] >= 5000) {
+					console.log(ant.player.title + " cache management: purging hue " + hue)
+					cache.youngGenPerHue[hue] = {}
+					cache.youngEntriesPerHue[hue] = 0
+				}
+				cache.youngGenPerHue[hue][key] = result
+				cache.youngEntriesPerHue[hue]++
+				return result
 			}
 		}
-		return rareMemoisedData[stringifiedInput]
 	}
+}
+
+function printMemoCache(player) {
+    var cache = player.antCache
+    console.log("Memo cache for " + player.title + ":")
+    console.log("- tenured entries:     " + cache.tenuredEntries)
+    console.log("- young gen entries:   [" +
+		cache.youngEntriesPerHue[0] + ", " +
+		cache.youngEntriesPerHue[1] + ", " +
+		cache.youngEntriesPerHue[2] + ", " +
+		cache.youngEntriesPerHue[3] + ", " +
+		cache.youngEntriesPerHue[4] + ", " +
+		cache.youngEntriesPerHue[5] + ", " +
+		cache.youngEntriesPerHue[6] + ", " +
+		cache.youngEntriesPerHue[7] + "]")
+    console.log("- access count:        " + cache.accessCount)
+    console.log("- tenured hit count:   " + cache.tenuredHitsCount)
+    console.log("- young gen hit count: " + cache.youngHitsCount)
 }
 
 function getMove(ant, rotatedView) {
@@ -1609,6 +1654,7 @@ function createPlayers(answers) {
 	var testPlayer = { id: 0, included: false, disqualified: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
 	testPlayer.code = $('#new_challenger_text').val()
 	testPlayer.antFunction = antFunctionMaker(testPlayer)
+	testPlayer.antCache = antCacheBuilder()
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -1624,6 +1670,7 @@ function createPlayers(answers) {
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,40) + ' - ' + user
 			player.antFunction = antFunctionMaker(player)
+			player.antCache = antCacheBuilder()
 			players.push(player)
 		}		
 	})
