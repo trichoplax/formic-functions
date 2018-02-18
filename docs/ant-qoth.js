@@ -1465,7 +1465,6 @@ function getMoveMemoiser(f) {
 				var result = cache.youngGenPerHue[hue][key]
 				if (cache.tenuredEntries < 60000) {
 					delete cache.youngGenPerHue[hue][key]
-					cache.youngEntriesPerHue[hue]--
 					cache.tenured[key] = result
 					cache.tenuredEntries++
 				}
