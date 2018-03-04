@@ -849,6 +849,7 @@ function startNewGame() {
 	playersThisGame.forEach(function(player) {
 		player.elapsedTime = 0
 		player.permittedTime = 0
+		player.antCache = antCacheBuilder()
 		if (seededRandom) {
 			player.random = seededRandomInitialiser(random(4294967296))  // Gives a seed from the full range of UInt32.
 		} else {
