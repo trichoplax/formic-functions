@@ -909,7 +909,7 @@ function abandonGame() {
 	gameInProgress = false
 	clearTimeout(timeoutID)
 	// Empty caches to save memory
-	gameStats.foreach(function(row) {
+	gameStats.forEach(function(row) {
 		row.player.antCache = antCacheBuilder()
 	})
 	if (ongoingTournament) {
