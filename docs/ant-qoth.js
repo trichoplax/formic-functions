@@ -1448,6 +1448,10 @@ memoisedGetMove = getMoveMemoiser(getMove)
 
 function getMoveMemoiser(f) {
 	return (ant, rotatedView) => {
+		// Don't cache the new challenger (until this can be made to allow logging)
+		if (ant.player.id === 0) {
+			return f(ant, rotatedView)
+		}
 		var key = JSON.stringify(rotatedView)
 		var cache = ant.player.antCache
 		cache.accessCount++
