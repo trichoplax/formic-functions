@@ -349,23 +349,29 @@ Number.isInteger = Number.isInteger || function(value) {
 }
 
 function dumpLeaderboardHtmlToConsole() {
-	var content = ''
-	for (var i=0; i<numberOfLeaderboards+1; i++) {
-		content += '<table><thead><tr><th>Position<th>Player<th>Score<th>Games<th>Score per game</thead><tbody>'
-		players.forEach(function(player) {
-			if (player.included) {
-				content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
-				if (player.id === 0) {
-					content += '<td>' + player.title
-				} else {
-					content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
-				}
-				content += '<td>' + player.score[i] + '<td>' + player.games[i] + '<td>' + player.scorePerGame[i].toFixed(2)
+	console.log(leaderboardHtml())
+}
+
+function dumpLeaderboardHtmlToPage() {
+	$('#leaderboard_html_dump_area').val(leaderboardHtml())
+	$('#leaderboard_html_dump_area').select()
+}
+
+function leaderboardHtml() {
+	var content = '<table><thead><tr><th>Position<th>Player<th>Score<th>Games<th>Score per game</thead><tbody>'
+	players.forEach(function(player) {
+		if (player.included) {
+			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
+			if (player.id === 0) {
+				content += '<td>' + player.title
+			} else {
+				content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
 			}
-		})
-		content += '</tbody></table>'
-	}
-	console.log(content)
+			content += '<td>' + player.score[numberOfLeaderboards] + '<td>' + player.games[numberOfLeaderboards] + '<td>' + player.scorePerGame[numberOfLeaderboards].toFixed(2)
+		}
+	})
+	content += '</tbody></table>'
+	return content
 }
 
 ordinalIndicator = (function() {
@@ -565,6 +571,9 @@ function initialiseInterface() {
 			$('#code_up_to_date').html('<h2>Code changed - click to use this new version</h2>')
 			$('#code_up_to_date').prop('disabled', false)
 		}
+	})
+	$('#dump_leaderboard_html_to_page').click(function() {
+		dumpLeaderboardHtmlToPage()
 	})
 }
 
