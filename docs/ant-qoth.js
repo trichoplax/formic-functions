@@ -4,6 +4,9 @@
 
 /* SETUP */
 
+const CACHE_SIZE = 8000000
+const PRIMES = [1,43,71,107,347,941,1291,1571,2143]
+
 $(load)
 
 function load() {
@@ -559,6 +562,15 @@ function initialiseInterface() {
 				player.code = $('#new_challenger_text').val()
 				player.antFunction = antFunctionMaker(player)
 				player.antCache = antCacheBuilder()
+				player.viewCache = []
+				player.responseCache = responseCacheMaker()
+				player.cachePersistence = cachePersistenceMaker()
+				player.foodlessCaches = foodlessCachesMaker()
+				player.foodCaches = foodCachesMaker()
+				player.cacheCalls = 0
+				player.cacheHits = 0
+				player.cacheOverwrites = 0
+				player.cacheFirstTimes = 0
 			}
 		})
 		$('#code_up_to_date').html('Code up to date')
@@ -691,6 +703,15 @@ function removeFromDisqualifiedTable(player) {
 	if (player.id === 0) {
 		player.antFunction = antFunctionMaker(player)
 		player.antCache = antCacheBuilder()
+		player.viewCache = []
+		player.responseCache = responseCacheMaker()
+		player.cachePersistence = cachePersistenceMaker()
+		player.foodlessCaches = foodlessCachesMaker()
+		player.foodCaches = foodCachesMaker()
+		player.cacheCalls = 0
+		player.cacheHits = 0
+		player.cacheOverwrites = 0
+		player.cacheFirstTimes = 0
 	}
 	sortGameStats()
 	updateLeaderboardPositions()
@@ -918,9 +939,19 @@ function abandonGame() {
 	gameInProgress = false
 	clearTimeout(timeoutID)
 	// Empty caches to save memory
-	gameStats.forEach(function(row) {
-		row.player.antCache = antCacheBuilder()
-	})
+	//gameStats.forEach(function(row) {
+	//	row.player.antCache = antCacheBuilder()
+	//	row.player.viewCache = []
+	//	row.player.responseCache = responseCacheMaker()
+	//  row.player.cachePersistence = cachePersistenceMaker()
+	//	row.player.foodlessCaches = foodlessCachesMaker()
+	//	row.player.foodCaches = foodCachesMaker()
+	//
+	//		row.player.cacheCalls = 0
+	//		row.player.cacheHits = 0
+	//	row.player.cacheOverwrites = 0
+	//	row.player.cacheFirstTimes = 0
+	//})
 	if (ongoingTournament) {
 		startNewGame()
 	} else {
@@ -1215,6 +1246,7 @@ function passFoodWorker(ant) {
 
 function gameOver() {
 	var id, score
+	console.log('_________________________________')
 	gameStats.forEach(function(row) {
 		if (!row.player.disqualified) {
 			score = playersWithLessFood(row.player)
@@ -1462,9 +1494,94 @@ memoisedGetMove = getMoveMemoiser(getMove)
 function getMoveMemoiser(f) {
 	return (ant, rotatedView) => {
 		// Don't cache the new challenger (until this can be made to allow logging)
-		if (ant.player.id === 0) {
-			return f(ant, rotatedView)
+		//if (ant.player.id === 0) {
+		//	return f(ant, rotatedView)
+		//}
+		ant.player.cacheCalls++
+		var key = hash(rotatedView)
+		if (isValidCache(ant, rotatedView, key)) {
+			if (ant.player.cachePersistence[key] < 2) {
+				ant.player.cachePersistence[key]++
+			}
+			ant.player.cacheHits++
+			return intToResponse(ant.player.responseCache[key])
+		} else {			
+			ant.player.cachePersistence[key]--	// persistence is clamped to [0, 255]
+			if (ant.player.foodlessCaches[4][key]) {
+				ant.player.cacheOverwrites++
+			} else {
+				ant.player.cacheFirstTimes++				
+			}
+			response = f(ant, rotatedView)
+			if (ant.player.cachePersistence[key] === 0) {
+				updateCacheValidator(ant, rotatedView, key)
+				ant.player.responseCache[key] = responseToInt(response)
+			}
+			return response
 		}
+	}
+}
+
+function updateCacheValidator(ant, view, key) {
+	foodlessCaches = ant.player.foodlessCaches
+	foodCaches = ant.player.foodCaches
+	for (let i=0; i<9; i++) {
+		ant = view[i].ant
+		foodlessCaches[i][key] = foodlessHash(view[i])
+		foodCaches[i][key] = ant?ant.food:0
+	}
+}
+
+function isValidCache(ant, view, key) {
+	foodlessCaches = ant.player.foodlessCaches
+	foodCaches = ant.player.foodCaches
+	for (let i=0; i<9; i++) {
+		ant = view[i].ant
+		if (foodlessCaches[i][key] !== foodlessHash(view[i])) {
+			return false
+		}
+		if (foodCaches[i][key] !== (ant?ant.food:0)) {
+			return false
+		}
+	}
+	return true
+}
+
+function foodlessHash(cell) {
+	const ant = cell.ant
+	return (cell.color-1 + cell.food*8) + (ant?(ant.type*32 + ant.friend*16):0)
+}
+
+function responseToInt(response) {
+	let value = (response.cell << 7) + (response.color << 3) + (response.type << 0)
+	return value
+}
+
+function intToResponse(encodedInt) {
+	return {
+		cell: encodedInt >> 7,
+		color: encodedInt >> 3 & 15,
+		type: encodedInt & 7
+	}
+}
+
+function hash(view) {
+	let result = 0
+	for (let i=0; i<9; i++) {
+		const cell = view[i]
+		const ant = cell.ant
+		const value = (cell.color-1 + cell.food*8)*8 + (ant?(ant.type + ant.food*256 + ant.friend*128):0)
+		result += PRIMES[i] * value
+	}
+	return result % CACHE_SIZE
+}
+
+function getMoveMemoiser_old_version(f) {
+	return (ant, rotatedView) => {
+		// Don't cache the new challenger (until this can be made to allow logging)
+		//if (ant.player.id === 0) {
+		//	return f(ant, rotatedView)
+		//}
 		var key = JSON.stringify(rotatedView)
 		var cache = ant.player.antCache
 		cache.accessCount++
@@ -1502,22 +1619,12 @@ function getMoveMemoiser(f) {
 	}
 }
 
+
 function printMemoCache(player) {
-    var cache = player.antCache
     console.log("Memo cache for " + player.title + ":")
-    console.log("- tenured entries:     " + cache.tenuredEntries)
-    console.log("- young gen entries:   [" +
-		cache.youngEntriesPerHue[0] + ", " +
-		cache.youngEntriesPerHue[1] + ", " +
-		cache.youngEntriesPerHue[2] + ", " +
-		cache.youngEntriesPerHue[3] + ", " +
-		cache.youngEntriesPerHue[4] + ", " +
-		cache.youngEntriesPerHue[5] + ", " +
-		cache.youngEntriesPerHue[6] + ", " +
-		cache.youngEntriesPerHue[7] + "]")
-    console.log("- access count:        " + cache.accessCount)
-    console.log("- tenured hit count:   " + cache.tenuredHitsCount)
-    console.log("- young gen hit count: " + cache.youngHitsCount)
+    console.log("Percentage cache hits: " + player.cacheHits/player.cacheCalls*100)
+    console.log("Percentage cache overwrites: " + player.cacheOverwrites/player.cacheCalls*100)
+    console.log("Percentage cache first times: " + player.cacheFirstTimes/player.cacheCalls*100)
 }
 
 function getMove(ant, rotatedView) {
@@ -1665,6 +1772,30 @@ function loadAnswers(site, qid, onFinish) {
 	loadPage(page, readPage)
 }
 
+function responseCacheMaker() {
+	return new Uint16Array(CACHE_SIZE)
+}
+
+function cachePersistenceMaker() {
+	return new Uint8ClampedArray(CACHE_SIZE)
+}
+
+function foodlessCachesMaker() {
+	let cacheList = []
+	for (let i=0; i<9; i++) {
+		cacheList.push(new Uint8Array(CACHE_SIZE))
+	}
+	return cacheList
+}
+
+function foodCachesMaker() {
+	let cacheList = []
+	for (let i=0; i<9; i++) {
+		cacheList.push(new Uint16Array(CACHE_SIZE))
+	}
+	return cacheList
+}
+
 function createPlayers(answers) {
 	var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
 	var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
@@ -1673,6 +1804,15 @@ function createPlayers(answers) {
 	testPlayer.code = $('#new_challenger_text').val()
 	testPlayer.antFunction = antFunctionMaker(testPlayer)
 	testPlayer.antCache = antCacheBuilder()
+	testPlayer.viewCache = []
+	testPlayer.responseCache = responseCacheMaker()
+	testPlayer.cachePersistence = cachePersistenceMaker()
+	testPlayer.foodlessCaches = foodlessCachesMaker()
+	testPlayer.foodCaches = foodCachesMaker()
+	testPlayer.cacheCalls = 0
+	testPlayer.cacheHits = 0
+	testPlayer.cacheOverwrites = 0
+	testPlayer.cacheFirstTimes = 0
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -1689,6 +1829,15 @@ function createPlayers(answers) {
 			player.title = nameMatch[1].substring(0,40) + ' - ' + user
 			player.antFunction = antFunctionMaker(player)
 			player.antCache = antCacheBuilder()
+			player.viewCache = []
+			player.responseCache = responseCacheMaker()
+			player.cachePersistence = cachePersistenceMaker()
+			player.foodlessCaches = foodlessCachesMaker()
+			player.foodCaches = foodCachesMaker()
+			player.cacheCalls = 0
+			player.cacheHits = 0
+			player.cacheOverwrites = 0
+			player.cacheFirstTimes = 0
 			players.push(player)
 		}		
 	})
