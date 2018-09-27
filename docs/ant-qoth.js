@@ -66,7 +66,6 @@ function setGlobals() {
     processingStartTime = 0
     debug = $('#debug').prop('checked')
     currentAntIndex = 0
-    maxPlayers = parseInt($('#max_players').val(), 10)
     maxPlayers = localRetrieve('maxPlayers')
     if (maxPlayers === null) {
         maxPlayers = parseInt($('#max_players').val(), 10)
