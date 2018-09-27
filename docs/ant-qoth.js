@@ -84,6 +84,10 @@ function setGlobals() {
     if (seededRandom === null) {
         seededRandom = $('#seeded_random').prop('checked')
     }
+    randomSeed = localRetrieve('randomSeed')
+    if (randomSeed === null) {
+        randomSeed = parseInt($('#seed').val(), 10)
+    }
     display = true
     displayFrameLengthTarget = 33
     noDisplayFrameLengthTarget = 1000
@@ -621,7 +625,8 @@ function initialiseInterface() {
         localStore('seededRandom', seededRandom)
         $('#seed').prop('disabled', !seededRandom)
     })
-    $('#seed').prop('disabled', true)
+    $('#seed').prop('disabled', !seededRandom)
+    $('#seed').val(randomSeed)
     $('#code_up_to_date').click(function() {
         players.forEach(function(player) {
             if (player.id === 0) {
@@ -890,8 +895,11 @@ function startNewGame() {
     gameInProgress = true
     $('#current_game_table').show()
     seededRandom = $('#seeded_random').prop('checked')
+    localStore('seededRandom', seededRandom)
     if (seededRandom) {
-        random = seededRandomInitialiser(parseInt($('#seed').val(), 10))
+        randomSeed = parseInt($('#seed').val(), 10)
+        random = seededRandomInitialiser(randomSeed)
+        localStore('randomSeed', randomSeed)
     } else {
         random = cryptoRandom
     }
