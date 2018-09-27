@@ -4,7 +4,7 @@
 
 /* SETUP */
 
-const CACHE_SIZE = 8000000
+const CACHE_SIZE = 7000000
 const PRIMES = [1,43,71,107,347,941,1291,1571,2143]
 
 $(load)
