@@ -55,7 +55,10 @@ function setGlobals() {
 	numberOfLeaderboards = 6
 	codeUpToDate = true
 	$('#completed_moves_area').html('0 moves of ' + movesPerGame + ' completed.')
-	delay = parseInt($('#delay').val(), 10)
+	delay = localRetrieve('delay')
+    if (delay === null) {
+        delay = parseInt($('#delay').val(), 10)
+    }
 	processingStartTime = 0
 	debug = $('#debug').prop('checked')
 	currentAntIndex = 0
@@ -498,6 +501,7 @@ function initialiseInterface() {
 	$('#delay').val(delay)
 	$('#delay').change(function() {
 		delay = parseInt($('#delay').val(), 10)
+        localStore('delay', delay)
 	})
 	$('#play').prop('disabled', true)
 	$('#play').click(function() {
