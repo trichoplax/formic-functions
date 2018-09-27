@@ -50,7 +50,10 @@ function setGlobals() {
     disqualifiedInfo = []
     population = []
     moveCounter = 0
-    movesPerGame = $('#moves_per_game').val()
+    movesPerGame = localRetrieve('movesPerGame')
+    if (movesPerGame === null) {
+        movesPerGame = parseInt($('#moves_per_game').val(), 10)
+    }
     paletteSize = 8
     numberOfLeaderboards = 6
     codeUpToDate = true
@@ -591,6 +594,7 @@ function initialiseInterface() {
         maxPlayers = parseInt($('#max_players').val(), 10)
         localStore('maxPlayers', maxPlayers)
     })
+    $('#moves_per_game').val(movesPerGame)
     $('#permitted_time_override').change(function() {
         permittedTime = parseInt($('#permitted_time_override').val(), 10)
     })
@@ -865,7 +869,8 @@ function displayZoomedArea() {
 /* GAMEPLAY */
 
 function startNewGame() {
-    movesPerGame = $('#moves_per_game').val()
+    movesPerGame = parseInt($('#moves_per_game').val())
+    localStore('movesPerGame', movesPerGame)
     gameInProgress = true
     $('#current_game_table').show()
     seededRandom = $('#seeded_random').prop('checked')
