@@ -80,6 +80,10 @@ function setGlobals() {
     if (permittedTime === null) {
         permittedTime = parseInt($('#permitted_time_override').val(), 10)
     }
+    seededRandom = localRetrieve('seededRandom')
+    if (seededRandom === null) {
+        seededRandom = $('#seeded_random').prop('checked')
+    }
     display = true
     displayFrameLengthTarget = 33
     noDisplayFrameLengthTarget = 1000
@@ -611,9 +615,11 @@ function initialiseInterface() {
         debug = $('#debug').prop('checked')
         localStore('debug', debug)
     })
-    $('#seeded_random').prop('checked', false)
+    $('#seeded_random').prop('checked', seededRandom)
     $('#seeded_random').change(function() {
-        $('#seed').prop('disabled', !$('#seeded_random').prop('checked'))
+        seededRandom = $('#seeded_random').prop('checked')
+        localStore('seededRandom', seededRandom)
+        $('#seed').prop('disabled', !seededRandom)
     })
     $('#seed').prop('disabled', true)
     $('#code_up_to_date').click(function() {
