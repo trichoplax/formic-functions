@@ -59,6 +59,10 @@ function setGlobals() {
     if (delay === null) {
         delay = parseInt($('#delay').val(), 10)
     }
+    zoomCellsPerSide = localRetrieve('zoomCellsPerSide')
+    if (zoomCellsPerSide === null) {
+        zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
+    }
     processingStartTime = 0
     debug = $('#debug').prop('checked')
     currentAntIndex = 0
@@ -178,7 +182,6 @@ function initialiseSupplementaryCanvases() {
     zoomCanvas.width = 1000
     zoomCanvas.height = 1000
     zoomCtx = zoomCanvas.getContext('2d')
-    zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
     zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
     zoomImage = zoomCtx.createImageData(zoomCanvas.width, zoomCanvas.height)
     for (i=0; i<zoomCanvas.width*zoomCanvas.height; i++) {
@@ -526,8 +529,10 @@ function initialiseInterface() {
     $('#step_ant').click(function() {
         stepAnt()
     })
+    $('#squares_per_side').val(zoomCellsPerSide)
     $('#squares_per_side').change(function() {
         zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
+        localStore('zoomCellsPerSide', zoomCellsPerSide)
         zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide
         if (zoomed) {
             fillZoomCanvas()
