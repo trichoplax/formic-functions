@@ -67,6 +67,10 @@ function setGlobals() {
     debug = $('#debug').prop('checked')
     currentAntIndex = 0
     maxPlayers = parseInt($('#max_players').val(), 10)
+    maxPlayers = localRetrieve('maxPlayers')
+    if (maxPlayers === null) {
+        maxPlayers = parseInt($('#max_players').val(), 10)
+    }
     display = true
     displayFrameLengthTarget = 33
     noDisplayFrameLengthTarget = 1000
@@ -586,6 +590,7 @@ function initialiseInterface() {
     $('#max_players').val(maxPlayers)
     $('#max_players').change(function() {
         maxPlayers = parseInt($('#max_players').val(), 10)
+        localStore('maxPlayers', maxPlayers)
     })
     $('#permitted_time_override').change(function() {
         permittedTime = parseInt($('#permitted_time_override').val(), 10)
