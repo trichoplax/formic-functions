@@ -67,7 +67,10 @@ function setGlobals() {
         zoomCellsPerSide = parseInt($('#squares_per_side').val(), 10)
     }
     processingStartTime = 0
-    debug = $('#debug').prop('checked')
+    debug = localRetrieve('debug')
+    if (debug === null) {
+        debug = $('#debug').prop('checked')
+    }
     currentAntIndex = 0
     maxPlayers = localRetrieve('maxPlayers')
     if (maxPlayers === null) {
@@ -603,8 +606,10 @@ function initialiseInterface() {
         permittedTime = parseInt($('#permitted_time_override').val(), 10)
         localStore('permittedTime', permittedTime)
     })
+    $('#debug').prop('checked', debug)
     $('#debug').change(function() {
         debug = $('#debug').prop('checked')
+        localStore('debug', debug)
     })
     $('#seeded_random').prop('checked', false)
     $('#seeded_random').change(function() {
