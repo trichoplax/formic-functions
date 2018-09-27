@@ -22,6 +22,28 @@ function confirmRefresh() {
 function setGlobals() {
 	qid = 135102
 	site = 'codegolf'
+    storageAllowed = function() {   // Thanks https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API (no attribution required - just adding a useful link)
+        var x = '__storage_test__';
+        try {
+            window.localStorage.setItem(x, x);
+            window.localStorage.removeItem(x);
+            return true;
+        }
+        catch(e) {
+            return e instanceof DOMException && (
+                // everything except Firefox
+                e.code === 22 ||
+                // Firefox
+                e.code === 1014 ||
+                // test name field too, because code might not be present
+                // everything except Firefox
+                e.name === 'QuotaExceededError' ||
+                // Firefox
+                e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+                // acknowledge QuotaExceededError only if there's something already stored
+                window.localStorage.length !== 0;
+        }
+    }()
 	players = []
 	invalidPlayers = []
 	gameStats = []
@@ -387,6 +409,20 @@ ordinalIndicator = (function() {
 		return indicators[n%100]
 	}
 })()
+
+function localStore(key, value) {
+    if (storageAllowed) {
+        window.localStorage.setItem(key, JSON.stringify(value))
+    }
+}
+
+function localRetrieve(key) {
+    if (storageAllowed) {
+        return JSON.parse(window.localStorage.getItem(key))
+    } else {
+        return null
+    }
+}
 
 /* INTERFACE */
 
