@@ -132,7 +132,10 @@ function setGlobals() {
         {x:0, y:1},
         {x:1, y:1}
     ]
-    paletteChoice = 0
+    paletteChoice = localRetrieve('paletteChoice')
+    if (paletteChoice === null) {
+        paletteChoice = 0
+    }
     initialiseColorPalettes()
     initialiseSupplementaryCanvases()
 }
@@ -268,6 +271,7 @@ function initialisePaletteDropdown() {
 function setNewPalette(selectedDropdownRow) {
     if (selectedDropdownRow !== paletteChoice) {
         paletteChoice = selectedDropdownRow
+        localStore('paletteChoice', paletteChoice)
         $('#selected_palette').attr('src', paletteImageSources[paletteChoice])
         displayGameTable()
         displayLeaderboard()
