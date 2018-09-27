@@ -73,6 +73,10 @@ function setGlobals() {
     if (maxPlayers === null) {
         maxPlayers = parseInt($('#max_players').val(), 10)
     }
+    permittedTime = localRetrieve('permittedTime')
+    if (permittedTime === null) {
+        permittedTime = parseInt($('#permitted_time_override').val(), 10)
+    }
     display = true
     displayFrameLengthTarget = 33
     noDisplayFrameLengthTarget = 1000
@@ -89,7 +93,6 @@ function setGlobals() {
     zoomedAreaCentreY = 0
     zoomOnLeft = true
     timeoutID = 0
-    permittedTime = parseInt($('#permitted_time_override').val(), 10)
     noMove = {cell:4, color:0, type:0, dummy_move_as_player_disqualified__See_disqualified_table:true}
     arenaWidth = 2500
     arenaHeight = 1000
@@ -595,8 +598,10 @@ function initialiseInterface() {
         localStore('maxPlayers', maxPlayers)
     })
     $('#moves_per_game').val(movesPerGame)
+    $('#permitted_time_override').val(permittedTime)
     $('#permitted_time_override').change(function() {
         permittedTime = parseInt($('#permitted_time_override').val(), 10)
+        localStore('permittedTime', permittedTime)
     })
     $('#debug').change(function() {
         debug = $('#debug').prop('checked')
