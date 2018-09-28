@@ -104,16 +104,16 @@ function setGlobals() {
     zoomedAreaCentreY = 0
     zoomOnLeft = true
     timeoutID = 0
-    noMove = {cell:4, color:0, type:0, dummy_move_as_player_disqualified__See_disqualified_table:true}
+    noMove = {"cell":4, "color":0, "type":0, "dummy_move_as_player_disqualified__See_disqualified_table":true}
     arenaWidth = 2500
     arenaHeight = 1000
     arenaArea = arenaWidth * arenaHeight
     arena = new Array(arenaArea)
     for (var i=0; i<arenaArea; i++) {
         arena[i] = {
-            food: 0,
-            color: 1,
-            ant: null
+            "food": 0,
+            "color": 1,
+            "ant": null
         }
     }
     rotator = [
@@ -735,10 +735,10 @@ function disqualify(player, reason, input, response) {
     console.log(reason)
     console.log('\tDISQUALIFIED: ' + player.title)
     var row = {
-        player: player,
-        reason: reason,
-        input: input,
-        response: response
+        "player": player,
+        "reason": reason,
+        "input": input,
+        "response": response
     }
     disqualifiedInfo.push(row)
     displayDisqualifiedTable()
@@ -950,11 +950,11 @@ function startNewGame() {
             var y = random(arenaHeight)
             if (arena[x + y*arenaWidth].ant === null && arena[x + y*arenaWidth].food === 0) {
                 var ant = {
-                    player: player,
-                    type: 5,
-                    food: 0,
-                    x: x,
-                    y: y
+                    "player": player,
+                    "type": 5,
+                    "food": 0,
+                    "x": x,
+                    "y": y
                 }
                 arena[x + y*arenaWidth].ant = ant
                 population.push(ant)
@@ -962,15 +962,15 @@ function startNewGame() {
             }
         }
         var row = {
-            player: player,
-            id: player.id,
-            title: player.title,
-            link: player.link,
-            type1: 0,
-            type2: 0,
-            type3: 0,
-            type4: 0,
-            food: 0
+            "player": player,
+            "id": player.id,
+            "title": player.title,
+            "link": player.link,
+            "type1": 0,
+            "type2": 0,
+            "type3": 0,
+            "type4": 0,
+            "food": 0
         }
         gameStats.push(row)
     })
@@ -1158,11 +1158,11 @@ function makeWorker(x, y, type, parent, input, response) {
         }
     }
     var newAnt = {
-        player: parent.player,
-        type: type,
-        food: 0,
-        x: x,
-        y: y
+        "player": parent.player,
+        "type": type,
+        "food": 0,
+        "x": x,
+        "y": y
     }
     birthCell.ant = newAnt
     population.splice(currentAntIndex, 0, newAnt)
@@ -1526,9 +1526,9 @@ function nineVisibleSquares(currentAnt) {
             var ant = arenaSquare.ant
             if (ant) {
                 square.ant = {
-                    food: ant.food,
-                    type: ant.type,
-                    friend: ant.player === currentAnt.player
+                    "food": ant.food,
+                    "type": ant.type,
+                    "friend": ant.player === currentAnt.player
                 }
             } else {
                 square.ant = null
@@ -1751,7 +1751,7 @@ function createPlayers(answers) {
     var codePattern = /<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/
     var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
-    var testPlayer = { id: 0, included: false, disqualified: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER' }
+    var testPlayer = { "id": 0, "included": false, "disqualified": false, "code": '', "link": '#new_challenger_heading', "title": 'NEW CHALLENGER' }
     testPlayer.code = $('#new_challenger_text').val()
     testPlayer.antFunction = antFunctionMaker(testPlayer)
     testPlayer.antCache = antCacheBuilder()
