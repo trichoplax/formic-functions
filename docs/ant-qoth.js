@@ -689,9 +689,7 @@ function displayGameTable() {
 
 function initialiseLeaderboard() {
     gamesPlayed = 0
-    $('#game_counter').html('0 games played.')
     players.forEach(function(player) {
-        player.position = 1
         player.score = []
         player.games = []
         player.scorePerGame = []
@@ -701,10 +699,49 @@ function initialiseLeaderboard() {
             player.scorePerGame.push(0)
         }
     })
+    var storedLeaderboard = localRetrieve('storedLeaderboard')
+    if (storedLeaderboard !== null) {
+        gamesPlayed = storedLeaderboard.gamesPlayed
+        var storedPlayers = storedLeaderboard.storedPlayers
+        players.forEach(function(player) {
+            var id = player.id
+            if (storedPlayers.hasOwnProperty(id)) {
+                var retrievedPlayer = storedPlayers[id]
+                player.score = retrievedPlayer.score
+                player.games = retrievedPlayer.games
+                player.scorePerGame = []
+                for (var t=0; t<numberOfLeaderboards+1; t++) {
+                    if (player.games[t] > 0) {
+                        player.scorePerGame.push(player.score[t] / player.games[t])
+                    } else {
+                        player.scorePerGame.push(0)
+                    }
+                }
+            }
+        })
+    }
+    $('#game_counter').html(gamesPlayed + ' games played.')
+
+    updateLeaderboardPositions()
     displayLeaderboard()
 }
 
+function saveCurrentTournament() {
+    var storedLeaderboard = {
+        "gamesPlayed": gamesPlayed,
+        "storedPlayers": {}
+    }
+    players.forEach(function(player) {
+        storedLeaderboard.storedPlayers[player.id] = {
+            "score": player.score,
+            "games": player.games
+        }
+    })
+    localStore('storedLeaderboard', storedLeaderboard)
+}
+
 function displayLeaderboard() {
+    saveCurrentTournament()
     var content = ''
     players.forEach(function(player) {
         var checkboxID = 'included_' + player.id
@@ -1012,6 +1049,7 @@ function startNewGame() {
 function checkThenResetLeaderboard() {
     if (window.confirm('Confirm that you want to lose all the data in the leaderboard.')) {
         $('#reset_leaderboard').prop('disabled', true)
+        localRemove('storedLeaderboard')
         initialiseLeaderboard()
     }
 }
