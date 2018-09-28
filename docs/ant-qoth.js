@@ -612,7 +612,9 @@ function initialiseInterface() {
     $('#reset_leaderboard').prop('disabled', true)
     $('#reset_leaderboard').click(checkThenResetLeaderboard)
     $('#current_game_table').hide()
-    $('#disqualified_table').hide()
+    if (disqualifiedInfo.length === 0) {
+        $('#disqualified_table').hide()
+    }
     $('#max_players').val(maxPlayers)
     $('#max_players').change(function() {
         maxPlayers = parseInt($('#max_players').val(), 10)
