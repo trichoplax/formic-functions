@@ -609,7 +609,6 @@ function initialiseInterface() {
     })
     $('#abandon_game').prop('disabled', true)
     $('#abandon_game').click(checkThenAbandonGame)
-    $('#reset_leaderboard').prop('disabled', true)
     $('#reset_leaderboard').click(checkThenResetLeaderboard)
     $('#current_game_table').hide()
     if (disqualifiedInfo.length === 0) {
@@ -720,10 +719,17 @@ function initialiseLeaderboard() {
             }
         })
     }
-    $('#game_counter').html(gamesPlayed + ' games played.')
-
+    displayNumberOfGamesPlayed()
     updateLeaderboardPositions()
     displayLeaderboard()
+}
+
+function displayNumberOfGamesPlayed() {
+    if (gamesPlayed === 1) {
+        $('#game_counter').html('1 game played.')
+    } else {
+        $('#game_counter').html(gamesPlayed + ' games played.')
+    }
 }
 
 function saveCurrentTournament() {
@@ -775,6 +781,11 @@ function displayLeaderboard() {
             displayLeaderboard()
         })
     })
+    if (gamesPlayed > 0) {
+        $('#reset_leaderboard').prop('disabled', false)
+    } else {
+        $('#reset_leaderboard').prop('disabled', true)
+    }
 }
 
 function disqualify(player, reason, input, response) {
@@ -1048,7 +1059,6 @@ function startNewGame() {
 
 function checkThenResetLeaderboard() {
     if (window.confirm('Confirm that you want to lose all the data in the leaderboard.')) {
-        $('#reset_leaderboard').prop('disabled', true)
         localRemove('storedLeaderboard')
         initialiseLeaderboard()
     }
@@ -1373,15 +1383,10 @@ function gameOver() {
             printMemoCache(row.player)
         }
     })
-    updateLeaderboardPositions()
-    $('#reset_leaderboard').prop('disabled', false)
-    displayLeaderboard()
     gamesPlayed++
-    if (gamesPlayed === 1) {
-        $('#game_counter').html('1 game played.')
-    } else {
-        $('#game_counter').html(gamesPlayed + ' games played.')
-    }
+    displayNumberOfGamesPlayed()
+    updateLeaderboardPositions()
+    displayLeaderboard()
     abandonGame()
 }
 
