@@ -733,6 +733,7 @@ function displayLeaderboard() {
         $(checkboxID).prop('disabled', player.disqualified)
         $(checkboxID).change(function() {
             player.included = $(checkboxID).prop('checked')
+            localStore('included' + player.id, player.included)
             updateLeaderboardPositions()
             displayLeaderboard()
         })
@@ -752,6 +753,7 @@ function disqualify(player, reason, input, response) {
     displayDisqualifiedTable()
     player.disqualified = true
     player.included = false
+    localStore('included' + player.id, player.included)
     sortGameStats()
     updateLeaderboardPositions()
     displayGameTable()
@@ -774,6 +776,7 @@ function removeFromDisqualifiedTable(player) {
     }
     player.disqualified = false
     player.included = true
+    localStore('included' + player.id, player.included)
     if (player.id === 0) {
         player.antFunction = antFunctionMaker(player)
         player.antCache = antCacheBuilder()
@@ -1782,6 +1785,9 @@ function createPlayers(answers) {
             players.push(player)
         }
     })
+    if (postedPlayersIncluded() === 0) {
+        includeAllPostedPlayers()
+    }
     showLoadedTime()
     colorPlayers()
     invalidPlayers.forEach(function(record) {
@@ -1793,3 +1799,21 @@ function createPlayers(answers) {
     initialiseLeaderboard()
 }
 
+function postedPlayersIncluded() {
+    includedCount = 0
+    players.forEach(function(player) {
+        if (player.id > 0 && player.included) {
+            includedCount++
+        }
+    })
+    return includedCount
+}
+
+function includeAllPostedPlayers() {
+    players.forEach(function(player) {
+        if (player.id > 0 && !player.disqualified) {
+            player.included = true
+            localStore('included' + player.id, true)
+        }
+    })
+}
