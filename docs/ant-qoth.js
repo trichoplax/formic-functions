@@ -749,9 +749,22 @@ function disqualify(player, reason, input, response) {
         "input": input,
         "response": response
     }
+    disqualifiedInfo.forEach(function(existingRow) {
+        if (existingRow.player.id === row.player.id) {
+            console.log('player ' + row.player.title + ' is already disqualified')
+        }
+    })
     disqualifiedInfo.push(row)
+    var rowToStore = {
+        "id": player.id,
+        "reason": reason,
+        "input": input,
+        "response": response
+    }
+    localStore('disqualifiedInfoRow' + player.id, rowToStore)
     displayDisqualifiedTable()
     player.disqualified = true
+    localStore('disqualified' + player.id, player.disqualified)
     player.included = false
     localStore('included' + player.id, player.included)
     sortGameStats()
@@ -775,6 +788,8 @@ function removeFromDisqualifiedTable(player) {
         displayDisqualifiedTable()
     }
     player.disqualified = false
+    localRemove('disqualified' + player.id)
+    localRemove('disqualifiedInfoRow' + player.id)
     player.included = true
     localStore('included' + player.id, player.included)
     if (player.id === 0) {
@@ -1775,8 +1790,14 @@ function createPlayers(answers) {
         if (codeMatch !== null && codeMatch.length > 0 && nameMatch !== null && nameMatch.length > 0) {
             var player = {}
             player.id = answer.answer_id
-            player.included = true
-            player.disqualified = false
+            player.included = localRetrieve('included' + player.id)
+            if (player.included === null) {
+                player.included = false
+            }
+            player.disqualified = localRetrieve('disqualified' + player.id)
+            if (player.disqualified === null) {
+                player.disqualified = false
+            }
             player.code = decode(codeMatch[1])
             player.link = answer.link
             player.title = nameMatch[1].substring(0,40) + ' - ' + user
@@ -1790,13 +1811,31 @@ function createPlayers(answers) {
     }
     showLoadedTime()
     colorPlayers()
+    initialiseLeaderboard()
+    // Iterate over a copy as original will be sorted by disqualify()
+    copyOfPlayers = players.slice()
+    copyOfPlayers.forEach(function(player) {
+        if (player.disqualified === true) {
+            var disqualifiedInfoRow = localRetrieve('disqualifiedInfoRow' + player.id)
+            if (disqualifiedInfoRow === null) {
+                player.disqualified = false
+                localRemove('disqualified' + player.id)
+            } else {
+                disqualify(
+                    player,
+                    disqualifiedInfoRow.reason,
+                    disqualifiedInfoRow.input,
+                    disqualifiedInfoRow.response
+                )
+            }
+        }
+    })
     invalidPlayers.forEach(function(record) {
         var reason = 'Excluded at load. Invalid function body: ' + record.errorMessage
         var input = 'None - never played.'
         var response = 'None - never played.'
         disqualify(record.player, reason, input, response)
     })
-    initialiseLeaderboard()
 }
 
 function postedPlayersIncluded() {
