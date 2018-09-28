@@ -454,6 +454,12 @@ function localRetrieve(key) {
     }
 }
 
+function localRemove(key) {
+    if (storageAllowed) {
+        window.localStorage.removeItem(key)
+    }
+}
+
 /* INTERFACE */
 
 function suppressButtonsUntilLoaded() {
