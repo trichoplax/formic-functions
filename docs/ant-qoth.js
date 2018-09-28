@@ -312,7 +312,7 @@ function colorPlayers() {
             enlargedAvatarCtx.msImageSmoothingEnabled = false
             enlargedAvatarCtx.webkitImageSmoothingEnabled = false
 
-            enlargedAvatarCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, enlargedAvatarCanvas.width, enlargedAvatarCanvas.height)            
+            enlargedAvatarCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, enlargedAvatarCanvas.width, enlargedAvatarCanvas.height)
             imageSource = enlargedAvatarCanvas.toDataURL()
             player.imageTags.push('<img src=\'' + imageSource + '\' class=\'tableImage\'></img>')
         })
@@ -697,7 +697,7 @@ function initialiseLeaderboard() {
 }
 
 function displayLeaderboard() {
-    var    content = ''
+    var content = ''
     players.forEach(function(player) {
         var checkboxID = 'included_' + player.id
         if (player.disqualified) {
@@ -1720,7 +1720,7 @@ function atLeastOneVisibleAnt() {
 function loadPlayers() {
     loadAnswers(site, qid, function(answers) {
         createPlayers(answers)
-    initialiseInterface()
+        initialiseInterface()
     })
 }
 
